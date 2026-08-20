@@ -10,6 +10,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import lombok.Getter;
 import net.runelite.api.Client;
+import net.runelite.api.Player;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.gameval.ItemID;
@@ -95,15 +96,6 @@ public class ReminderService
 			addEssenceWarnings(inv);
 		}
 
-		if (idle)
-		{
-			warnings.add("Idle — " + (lastStepHint()));
-		}
-	}
-
-	private String lastStepHint()
-	{
-		return "click the highlighted tile to continue";
 	}
 
 	private void addLanternWarnings(InventorySnapshot inv, RcMode mode)
@@ -189,6 +181,16 @@ public class ReminderService
 		{
 			return;
 		}
+
+		// Standing still while mining or chiseling is not idle.
+		if (isBusy())
+		{
+			lastTile = client.getLocalPlayer().getWorldLocation();
+			lastMoveAt = Instant.now();
+			idle = false;
+			return;
+		}
+
 		WorldPoint now = client.getLocalPlayer().getWorldLocation();
 		if (lastTile == null || now == null || lastTile.distanceTo(now) > 0)
 		{
@@ -198,5 +200,16 @@ public class ReminderService
 			return;
 		}
 		idle = Duration.between(lastMoveAt, Instant.now()).getSeconds() >= config.idleReminderSeconds();
+	}
+
+	private boolean isBusy()
+	{
+		Player player = client.getLocalPlayer();
+		if (player == null)
+		{
+			return false;
+		}
+		return player.getAnimation() != -1
+			|| player.getPoseAnimation() != player.getIdlePoseAnimation();
 	}
 }

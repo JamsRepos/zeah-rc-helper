@@ -73,7 +73,7 @@ You cannot verify plugin behavior yourself. Even if you have screen-capture or c
 
 After completing a task, do not declare it done. Instead:
 
-1. Offer to launch RuneLite for the user by running `./gradlew run` from the plugin's root directory.
+1. Always restart the development client by stopping any running `./gradlew run` process and starting a new one from the plugin's root directory. Do this after every code change — do not wait to be asked.
 2. Instruct the user to follow the "Using Jagex Accounts" instructions found at https://github.com/runelite/runelite/wiki/Using-Jagex-Accounts to login to the development client.
 3. Tell the user *what to test* — the specific behavior you changed, the golden path, and any edge cases worth exercising.
 4. Wait for the user to confirm the feature works in-game before considering the task complete. A clean JVM start is not a passing test.

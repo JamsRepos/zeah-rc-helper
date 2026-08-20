@@ -43,8 +43,9 @@ public enum RotationStep
 			case GO_DARK_SECOND:
 				return List.of(ZeahRcArea.DARK_ALTAR);
 			case CHISEL_AND_RETURN:
+				return List.of(ZeahRcArea.NORTH_SHORTCUT, ZeahRcArea.MINE_STAND);
 			case RETURN_TO_MINE:
-				return List.of(ZeahRcArea.SHORTCUT, ZeahRcArea.MINE_STAND);
+				return List.of(ZeahRcArea.BOULDER_SHORTCUT, ZeahRcArea.SHORTCUT, ZeahRcArea.NORTH_SHORTCUT, ZeahRcArea.MINE_STAND);
 			case GO_ALTAR:
 			case CRAFT_FRAGMENTS:
 			case CRAFT_REMAINING:

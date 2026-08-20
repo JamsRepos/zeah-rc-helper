@@ -50,7 +50,7 @@ public interface ZeahRcHelperConfig extends Config
 	@ConfigItem(
 		keyName = "highlightNextClick",
 		name = "Highlight next click",
-		description = "Highlight the tile(s) to click next",
+		description = "Highlight the next object's clickbox (runestone, shortcut, or altar)",
 		section = helperSection,
 		position = 2
 	)
@@ -60,11 +60,23 @@ public interface ZeahRcHelperConfig extends Config
 	}
 
 	@ConfigItem(
+		keyName = "showPath",
+		name = "Show path",
+		description = "Draw a line on the floor to your destination, using agility shortcuts you qualify for.",
+		section = helperSection,
+		position = 3
+	)
+	default boolean showPath()
+	{
+		return true;
+	}
+
+	@ConfigItem(
 		keyName = "showStatusPanel",
 		name = "Show status panel",
 		description = "Show the current step, fragment/block counts, and trip counter",
 		section = helperSection,
-		position = 3
+		position = 4
 	)
 	default boolean showStatusPanel()
 	{
