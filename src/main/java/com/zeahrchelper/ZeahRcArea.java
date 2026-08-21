@@ -39,16 +39,24 @@ public final class ZeahRcArea
 		new WorldPoint(1796, 3892, 0)
 	);
 	/**
-	 * South path from the Dark Altar ridge down to the Blood Altar.
-	 * Keeps a continuous floor line while the altar is still outside the loaded scene.
+	 * Dark Altar → Blood Altar walking path (west around the ridge, then south-east to the altar).
+	 * Captured in-game from venerate to altar click.
 	 */
 	public static final List<WorldPoint> BLOOD_APPROACH = List.of(
-		new WorldPoint(1719, 3872, 0),
-		new WorldPoint(1718, 3855, 0),
-		new WorldPoint(1717, 3840, 0)
+		new WorldPoint(1701, 3880, 0),
+		new WorldPoint(1674, 3879, 0),
+		new WorldPoint(1659, 3881, 0),
+		new WorldPoint(1661, 3863, 0),
+		new WorldPoint(1675, 3859, 0),
+		new WorldPoint(1731, 3856, 0),
+		new WorldPoint(1735, 3849, 0),
+		new WorldPoint(1735, 3828, 0),
+		new WorldPoint(1728, 3826, 0),
+		new WorldPoint(1717, 3826, 0)
 	);
 
-	private static final int AREA_MIN_X = 1688;
+	/** Inclusive bounds for the Arceuus RC loop, including the west blood-altar walk. */
+	private static final int AREA_MIN_X = 1650;
 	private static final int AREA_MAX_X = 1836;
 	private static final int AREA_MIN_Y = 3810;
 	private static final int AREA_MAX_Y = 3908;

@@ -427,7 +427,7 @@ public class RotationHelper
 		{
 			return false;
 		}
-		// Until the southern ridge overlooking the Blood Altar, guide south with waypoints.
+		// Until near the Blood Altar, follow the west-then-south walking path.
 		return start.getY() >= 3836 && start.getX() <= 1745;
 	}
 
@@ -440,7 +440,7 @@ public class RotationHelper
 	}
 
 	/**
-	 * Follow the Dark Altar → Blood Altar ridge south until A* can finish to the altar.
+	 * Follow the captured Dark Altar → Blood Altar walk until A* can finish to the altar.
 	 */
 	private List<WorldPoint> bloodApproachPath(WorldView worldView, WorldPoint start, WorldPoint end)
 	{
