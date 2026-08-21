@@ -25,10 +25,10 @@ For Jagex accounts, follow [Using Jagex Accounts](https://github.com/runelite/ru
 - **Next-click highlight** — flashes the runestone, agility shortcut, or altar you should click next. Runestone selection follows the same varbit logic as Easy Arceuus Runecrafting and swaps when a stone depletes.
 - **Floor path** — draws a line to your destination while travelling. Uses agility shortcuts you qualify for: 69 north (mine ↔ Dark Altar), 73 west (Blood Altar → mine), 52 east (mine ↔ soul path), and 49 boulder (soul approach → mine). Hidden when you are already at the target.
 - **Status panel** — current step, dense/dark/fragment counts, and trip counter.
-- **Abyssal lantern** — reminds you to equip it. Optional log-type check:
+- **Gear reminders** — chisel (including jeweller's), pickaxe, and abyssal lantern. Optional lantern log-type check:
   - Bloods: blisterwood (20% more bloods), magic (10% all runes), or redwood
   - Souls: magic or redwood (willow also gives +5% runes). Blisterwood only helps bloods.
-- **Blood essence** (blood mode) — reminds you to bring and activate it, and warns at a configurable charge threshold. Check the essence in-game so the plugin can read remaining charges from chat.
+- **Blood essence** (blood mode) — reminds you to bring and activate it, and tracks charges from activate/craft chat (and Item Charges if available). Warns at a configurable charge threshold.
 - **Idle reminder** — warns if you stand still in the Arceuus RC area too long. Optional gentle screen tint (off by default).
 
 ## The rotation
@@ -54,7 +54,7 @@ Same pattern for bloods (77 RC) and souls (90 RC) — only the altar changes:
 | Highlight next click | On | Object clickbox highlight |
 | Show path | On | Floor path to destination |
 | Show status panel | On | Step and inventory panel |
-| Lantern reminder | On | Equip reminder |
+| Gear reminders | On | Chisel, pickaxe, and lantern |
 | Check lantern logs | On | Warn on wrong/unlit logs |
 | Blood essence reminder | On | Blood mode only |
 | Low essence charges | 100 | Warn at or below this charge count |

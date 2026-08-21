@@ -38,6 +38,15 @@ public final class ZeahRcArea
 		new WorldPoint(1786, 3895, 0),
 		new WorldPoint(1796, 3892, 0)
 	);
+	/**
+	 * South path from the Dark Altar ridge down to the Blood Altar.
+	 * Keeps a continuous floor line while the altar is still outside the loaded scene.
+	 */
+	public static final List<WorldPoint> BLOOD_APPROACH = List.of(
+		new WorldPoint(1719, 3872, 0),
+		new WorldPoint(1718, 3855, 0),
+		new WorldPoint(1717, 3840, 0)
+	);
 
 	private static final int AREA_MIN_X = 1688;
 	private static final int AREA_MAX_X = 1836;

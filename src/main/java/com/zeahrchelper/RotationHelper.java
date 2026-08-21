@@ -291,6 +291,11 @@ public class RotationHelper
 			pathGapAfter = null;
 			path = soulApproachPath(worldView, start, end);
 		}
+		else if (useBloodApproach(step, start))
+		{
+			pathGapAfter = null;
+			path = bloodApproachPath(worldView, start, end);
+		}
 		else
 		{
 			path = Pathfinder.find(worldView, start, end, agilityTransports(agility, step, start));
@@ -416,13 +421,39 @@ public class RotationHelper
 		return start.getY() >= 3875 && start.getX() <= 1796;
 	}
 
+	private boolean useBloodApproach(RotationStep step, WorldPoint start)
+	{
+		if (step != RotationStep.GO_ALTAR || resolvedMode != RcMode.BLOOD || start == null)
+		{
+			return false;
+		}
+		// Until the southern ridge overlooking the Blood Altar, guide south with waypoints.
+		return start.getY() >= 3836 && start.getX() <= 1745;
+	}
+
 	/**
 	 * Follow the north-east crystal path until the Soul Altar is in the loaded scene, then A* the rest.
 	 */
 	private List<WorldPoint> soulApproachPath(WorldView worldView, WorldPoint start, WorldPoint end)
 	{
-		List<WorldPoint> waypoints = ZeahRcArea.SOUL_APPROACH;
-		int from = firstRemainingSoulWaypoint(start, waypoints);
+		return waypointApproachPath(worldView, start, end, ZeahRcArea.SOUL_APPROACH);
+	}
+
+	/**
+	 * Follow the Dark Altar → Blood Altar ridge south until A* can finish to the altar.
+	 */
+	private List<WorldPoint> bloodApproachPath(WorldView worldView, WorldPoint start, WorldPoint end)
+	{
+		return waypointApproachPath(worldView, start, end, ZeahRcArea.BLOOD_APPROACH);
+	}
+
+	private List<WorldPoint> waypointApproachPath(
+		WorldView worldView,
+		WorldPoint start,
+		WorldPoint end,
+		List<WorldPoint> waypoints)
+	{
+		int from = firstRemainingWaypoint(start, waypoints);
 		List<WorldPoint> path = new ArrayList<>();
 		WorldPoint cursor = start;
 		for (int i = from; i < waypoints.size(); i++)
@@ -453,7 +484,7 @@ public class RotationHelper
 		return path;
 	}
 
-	private static int firstRemainingSoulWaypoint(WorldPoint start, List<WorldPoint> waypoints)
+	private static int firstRemainingWaypoint(WorldPoint start, List<WorldPoint> waypoints)
 	{
 		int best = 0;
 		int bestDist = Integer.MAX_VALUE;

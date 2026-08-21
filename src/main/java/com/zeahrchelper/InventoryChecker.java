@@ -115,7 +115,7 @@ public class InventoryChecker
 					hasFragmentItem = true;
 					fragmentQty += qty;
 				}
-				else if (id == ItemID.CHISEL)
+				else if (isChisel(id))
 				{
 					chisel = true;
 				}
@@ -237,6 +237,11 @@ public class InventoryChecker
 		}
 		Item shield = equipment.getItem(EquipmentInventorySlot.SHIELD.getSlotIdx());
 		return shield != null && isAbyssalLantern(shield.getId());
+	}
+
+	static boolean isChisel(int id)
+	{
+		return id == ItemID.CHISEL || id == ItemID.JEWELLERS_CHISEL;
 	}
 
 	static boolean isAbyssalLantern(int id)

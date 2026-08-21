@@ -18,7 +18,7 @@ public interface ZeahRcHelperConfig extends Config
 
 	@ConfigSection(
 		name = "Reminders",
-		description = "Lantern, blood essence, and idle warnings",
+		description = "Gear, blood essence, and idle warnings",
 		position = 1
 	)
 	String reminderSection = "reminders";
@@ -85,8 +85,8 @@ public interface ZeahRcHelperConfig extends Config
 
 	@ConfigItem(
 		keyName = "lanternReminder",
-		name = "Abyssal lantern reminder",
-		description = "Remind you to equip the abyssal lantern while runecrafting",
+		name = "Gear reminders",
+		description = "Remind you to bring a chisel (including jeweller's), a pickaxe, and an abyssal lantern",
 		section = reminderSection,
 		position = 0
 	)
@@ -98,7 +98,7 @@ public interface ZeahRcHelperConfig extends Config
 	@ConfigItem(
 		keyName = "lanternLogCheck",
 		name = "Check lantern logs",
-		description = "Warn if the lantern is unlit or using logs that don't help this method",
+		description = "When gear reminders are on, warn if the lantern is unlit or using logs that don't help this method",
 		section = reminderSection,
 		position = 1
 	)
