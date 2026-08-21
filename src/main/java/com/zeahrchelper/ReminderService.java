@@ -14,14 +14,27 @@ import net.runelite.api.Player;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.gameval.ItemID;
+import net.runelite.client.config.ConfigManager;
+import net.runelite.client.util.Text;
 
 @Singleton
 public class ReminderService
 {
-	private static final Pattern ESSENCE_CHARGES = Pattern.compile("Your blood essence has (\\d+) charges remaining", Pattern.CASE_INSENSITIVE);
+	private static final Pattern ESSENCE_CHARGES = Pattern.compile(
+		"Your blood essence has (\\d{1,4}) charges? remaining",
+		Pattern.CASE_INSENSITIVE);
+	private static final Pattern ESSENCE_EXTRACT = Pattern.compile(
+		"You manage to extract power from the Blood Essence and craft (\\d{1,3}) extra runes?",
+		Pattern.CASE_INSENSITIVE);
+	private static final String ESSENCE_ACTIVATE = "You activate the blood essence.";
+	private static final int MAX_BLOOD_ESSENCE_CHARGES = 1000;
+	/** Matches RuneLite Item Charges plugin RS-profile key. */
+	private static final String ITEM_CHARGE_GROUP = "itemCharge";
+	private static final String ITEM_CHARGE_BLOOD_ESSENCE = "bloodEssence";
 
 	private final Client client;
 	private final ZeahRcHelperConfig config;
+	private final ConfigManager configManager;
 
 	@Getter
 	private final List<String> warnings = new ArrayList<>();
@@ -36,10 +49,11 @@ public class ReminderService
 	private WorldPoint lastTile;
 
 	@Inject
-	ReminderService(Client client, ZeahRcHelperConfig config)
+	ReminderService(Client client, ZeahRcHelperConfig config, ConfigManager configManager)
 	{
 		this.client = client;
 		this.config = config;
+		this.configManager = configManager;
 	}
 
 	public void reset()
@@ -57,11 +71,29 @@ public class ReminderService
 		{
 			return;
 		}
-		String message = event.getMessage().replaceAll("<[^>]+>", " ");
-		Matcher matcher = ESSENCE_CHARGES.matcher(message);
-		if (matcher.find())
+		String message = Text.removeTags(event.getMessage());
+		Matcher check = ESSENCE_CHARGES.matcher(message);
+		if (check.find())
 		{
-			bloodEssenceCharges = Integer.parseInt(matcher.group(1));
+			setBloodEssenceCharges(Integer.parseInt(check.group(1)));
+			return;
+		}
+		Matcher extract = ESSENCE_EXTRACT.matcher(message);
+		if (extract.find())
+		{
+			int used = Integer.parseInt(extract.group(1));
+			int current = bloodEssenceCharges != null
+				? bloodEssenceCharges
+				: readItemChargeCharges();
+			if (current >= 0)
+			{
+				setBloodEssenceCharges(Math.max(0, current - used));
+			}
+			return;
+		}
+		if (message.contains(ESSENCE_ACTIVATE))
+		{
+			setBloodEssenceCharges(MAX_BLOOD_ESSENCE_CHARGES);
 		}
 	}
 
@@ -76,7 +108,22 @@ public class ReminderService
 		}
 
 		updateIdle();
+		syncBloodEssenceCharges(inv);
 
+		if (config.lanternReminder())
+		{
+			addGearWarnings(inv, mode);
+		}
+
+		if (config.bloodEssenceReminder() && mode == RcMode.BLOOD)
+		{
+			addEssenceWarnings(inv);
+		}
+
+	}
+
+	private void addGearWarnings(InventorySnapshot inv, RcMode mode)
+	{
 		if (!inv.isHasChisel())
 		{
 			warnings.add("Bring a chisel");
@@ -85,17 +132,7 @@ public class ReminderService
 		{
 			warnings.add("Bring a pickaxe (worn or in inventory)");
 		}
-
-		if (config.lanternReminder())
-		{
-			addLanternWarnings(inv, mode);
-		}
-
-		if (config.bloodEssenceReminder() && mode == RcMode.BLOOD)
-		{
-			addEssenceWarnings(inv);
-		}
-
+		addLanternWarnings(inv, mode);
 	}
 
 	private void addLanternWarnings(InventorySnapshot inv, RcMode mode)
@@ -173,6 +210,48 @@ public class ReminderService
 		}
 
 		warnings.add("Bring activated blood essence for +50% blood runes");
+	}
+
+	private void syncBloodEssenceCharges(InventorySnapshot inv)
+	{
+		if (!inv.isHasActiveBloodEssence())
+		{
+			if (!inv.isHasInactiveBloodEssence())
+			{
+				bloodEssenceCharges = null;
+			}
+			return;
+		}
+		if (bloodEssenceCharges != null)
+		{
+			return;
+		}
+		int stored = readItemChargeCharges();
+		if (stored >= 0)
+		{
+			bloodEssenceCharges = stored;
+		}
+	}
+
+	private void setBloodEssenceCharges(int charges)
+	{
+		bloodEssenceCharges = Math.max(0, Math.min(MAX_BLOOD_ESSENCE_CHARGES, charges));
+	}
+
+	private int readItemChargeCharges()
+	{
+		try
+		{
+			Integer stored = configManager.getRSProfileConfiguration(
+				ITEM_CHARGE_GROUP,
+				ITEM_CHARGE_BLOOD_ESSENCE,
+				Integer.class);
+			return stored != null ? stored : -1;
+		}
+		catch (Exception ex)
+		{
+			return -1;
+		}
 	}
 
 	private void updateIdle()
