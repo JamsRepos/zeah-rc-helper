@@ -18,9 +18,8 @@ final class Pathfinder
 {
 	private static final int MAX_NODES = 6000;
 	private static final int WALKABLE_SEARCH = 6;
+	/** Adjacent tiles may take a hop; the recorded edge is still origin → destination. */
 	private static final int TRANSPORT_REACH = 1;
-	/** Consecutive tiles farther than this are an agility hop, not a walk. */
-	static final int HOP_TILES = 2;
 
 	private Pathfinder()
 	{
@@ -132,7 +131,11 @@ final class Pathfinder
 					int[] hop = hops[i];
 					if (Math.max(Math.abs(cur.x - hop[0]), Math.abs(cur.y - hop[1])) <= TRANSPORT_REACH)
 					{
-						tryAdd(open, seen, flags, size, cur, hop[2], hop[3], 0, 0, false, ex, ey, hops);
+						Node from = hopOrigin(cur, hop[0], hop[1], seen, ex, ey, hops);
+						if (from != null)
+						{
+							tryAdd(open, seen, flags, size, from, hop[2], hop[3], 0, 0, false, ex, ey, hops);
+						}
 					}
 				}
 			}
@@ -192,7 +195,7 @@ final class Pathfinder
 
 	static boolean isHop(WorldPoint a, WorldPoint b)
 	{
-		return a != null && b != null && a.distanceTo(b) > HOP_TILES;
+		return AgilityShortcut.hopBetween(a, b);
 	}
 
 	static int firstHopIndex(List<WorldPoint> path)
@@ -203,7 +206,7 @@ final class Pathfinder
 		}
 		for (int i = 0; i < path.size() - 1; i++)
 		{
-			if (isHop(path.get(i), path.get(i + 1)))
+			if (AgilityShortcut.hopBetween(path.get(i), path.get(i + 1)))
 			{
 				return i;
 			}
@@ -229,14 +232,29 @@ final class Pathfinder
 			int dy1 = cur.getY() - prev.getY();
 			int dx2 = next.getX() - cur.getX();
 			int dy2 = next.getY() - cur.getY();
-			// Keep agility hop endpoints so the line goes to the shortcut, then continues.
-			if (isHop(prev, cur) || isHop(cur, next) || dx1 * dy2 != dy1 * dx2)
+			if (AgilityShortcut.hopBetween(prev, cur) || AgilityShortcut.hopBetween(cur, next)
+				|| dx1 * dy2 != dy1 * dx2)
 			{
 				out.add(cur);
 			}
 		}
 		out.add(path.get(path.size() - 1));
 		return out;
+	}
+
+	private static Node hopOrigin(Node cur, int ox, int oy, boolean[][] seen, int ex, int ey, int[][] hops)
+	{
+		if (cur.x == ox && cur.y == oy)
+		{
+			return cur;
+		}
+		if (seen[ox][oy])
+		{
+			return null;
+		}
+		seen[ox][oy] = true;
+		int g = cur.g + 2;
+		return new Node(ox, oy, g, g + heuristic(ox, oy, ex, ey, hops), cur);
 	}
 
 	private static void tryAdd(
@@ -262,20 +280,6 @@ final class Pathfinder
 		{
 			return;
 		}
-		if (!walking && (flags[nx][ny] & CollisionDataFlag.BLOCK_MOVEMENT_FULL) != 0)
-		{
-			int[] walkable = nearestWalkable(flags, nx, ny, size);
-			if (walkable == null)
-			{
-				return;
-			}
-			nx = walkable[0];
-			ny = walkable[1];
-			if (seen[nx][ny] || (nx == cur.x && ny == cur.y))
-			{
-				return;
-			}
-		}
 		seen[nx][ny] = true;
 		int step = walking ? ((dx != 0 && dy != 0) ? 3 : 2) : 2;
 		int g = cur.g + step;
@@ -298,13 +302,16 @@ final class Pathfinder
 			{
 				continue;
 			}
-			int[] origin = nearestWalkable(flags, from.getSceneX(), from.getSceneY(), size);
-			int[] dest = nearestWalkable(flags, to.getSceneX(), to.getSceneY(), size);
-			if (origin == null || dest == null || (origin[0] == dest[0] && origin[1] == dest[1]))
+			int ox = from.getSceneX();
+			int oy = from.getSceneY();
+			int dx = to.getSceneX();
+			int dy = to.getSceneY();
+			if (!inBounds(ox, oy, size) || !inBounds(dx, dy, size) || (ox == dx && oy == dy))
 			{
 				continue;
 			}
-			hops.add(new int[]{origin[0], origin[1], dest[0], dest[1]});
+			// Hops exist to cross blocked tiles; do not drop them for collision flags.
+			hops.add(new int[]{ox, oy, dx, dy});
 		}
 		return hops.toArray(new int[0][]);
 	}

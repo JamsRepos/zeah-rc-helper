@@ -26,8 +26,6 @@ import net.runelite.api.gameval.VarbitID;
 public class SceneTracker
 {
 	private static final int RUNESTONE_NEAR_TILES = 4;
-	/** Wiki/gameval id for the 69 Agility northern scramble. ObjectID1 is package-private. */
-	private static final int NORTH_SHORTCUT_ID = 34741;
 
 	private final Client client;
 
@@ -216,6 +214,33 @@ public class SceneTracker
 		return loc.distanceTo(fallback) <= tiles;
 	}
 
+	public TileObject objectForShortcutId(int id)
+	{
+		if (id == ObjectID.ARCHEUUS_RUNESTONE_SHORTCUT_BOULDER)
+		{
+			return shortcut49;
+		}
+		if (id == AgilityShortcut.NORTH_OBJECT_ID)
+		{
+			return shortcut69;
+		}
+		if (id == ObjectID.ARCHEUUS_RUNESTONE_SHORTCUT_MIDGREY_BOTTOM)
+		{
+			return shortcut52Inner;
+		}
+		if (id == ObjectID.ARCHEUUS_RUNESTONE_SHORTCUT_MIDGREY_TOP)
+		{
+			return shortcut52Outer;
+		}
+		if (id == ObjectID.ARCHEUUS_RUNESTONE_SHORTCUT_GREY_TOP
+			|| id == ObjectID.ARCHEUUS_RUNESTONE_SHORTCUT_GREY_BOTTOM
+			|| id == ObjectID.ARCHEUUS_RUNESTONE_SHORTCUT_GREY_MIDDLE)
+		{
+			return shortcut73;
+		}
+		return null;
+	}
+
 	public boolean isAtMine(WorldPoint loc)
 	{
 		if (loc == null)
@@ -303,7 +328,7 @@ public class SceneTracker
 			case ObjectID.ARCHEUUS_RUNESTONE_SHORTCUT_GREY_MIDDLE:
 				shortcut73 = despawn ? clear(shortcut73, object) : preferNear(shortcut73, object, ZeahRcArea.SHORTCUT);
 				break;
-			case NORTH_SHORTCUT_ID:
+			case AgilityShortcut.NORTH_OBJECT_ID:
 				shortcut69 = despawn ? clear(shortcut69, object) : preferNear(shortcut69, object, ZeahRcArea.NORTH_SHORTCUT);
 				break;
 			case ObjectID.ARCHEUUS_RUNESTONE_SHORTCUT_MIDGREY_TOP:

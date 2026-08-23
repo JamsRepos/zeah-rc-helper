@@ -11,17 +11,24 @@ import com.zeahrchelper.ZeahRcHelperPlugin;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.util.List;
 import javax.inject.Inject;
 import net.runelite.api.MenuAction;
 import net.runelite.client.ui.overlay.OverlayPanel;
 import net.runelite.client.ui.overlay.OverlayPosition;
 import net.runelite.client.ui.overlay.components.LineComponent;
-import net.runelite.client.ui.overlay.components.TitleComponent;
 
 import static net.runelite.client.ui.overlay.OverlayManager.OPTION_CONFIGURE;
 
 public class StatusOverlay extends OverlayPanel
 {
+	private static final Color LABEL = Color.WHITE;
+	private static final Color WARN = new Color(255, 168, 76);
+	private static final Color ESSENCE_OK = new Color(120, 200, 140);
+	private static final Dimension SIZE = new Dimension(156, 0);
+
 	private final ZeahRcHelperConfig config;
 	private final RotationHelper rotationHelper;
 	private final ReminderService reminderService;
@@ -38,76 +45,109 @@ public class StatusOverlay extends OverlayPanel
 		this.config = config;
 		this.rotationHelper = rotationHelper;
 		this.reminderService = reminderService;
+		panelComponent.setBorder(new Rectangle(8, 8, 8, 8));
+		panelComponent.setGap(new Point(0, 4));
+		panelComponent.setPreferredSize(SIZE);
 		addMenuEntry(MenuAction.RUNELITE_OVERLAY_CONFIG, OPTION_CONFIGURE, "Zeah RC Helper");
 	}
 
 	@Override
 	public Dimension render(Graphics2D graphics)
 	{
-		if (!config.enableHelper() || !config.showStatusPanel())
+		if (!config.showStatusPanel())
 		{
 			return null;
 		}
 
 		HelperAction action = rotationHelper.getCurrentAction();
-		if (action == null || action.getStep() == RotationStep.IDLE)
+		boolean inRotation = config.enableHelper()
+			&& action != null
+			&& action.getStep() != RotationStep.IDLE;
+		List<String> warnings = reminderService.getWarnings();
+		if (!inRotation && warnings.isEmpty())
 		{
 			return null;
 		}
 
-		InventorySnapshot inv = rotationHelper.getSnapshot();
 		RcMode mode = rotationHelper.getResolvedMode();
-
-		panelComponent.getChildren().add(TitleComponent.builder()
-			.text("Zeah RC — " + (mode == RcMode.SOUL ? "Souls" : "Bloods"))
-			.color(Color.CYAN)
-			.build());
-
-		Color stepColor = action.getColor() != null ? action.getColor() : Color.WHITE;
-		panelComponent.getChildren().add(LineComponent.builder()
-			.left(action.getStep().getLabel())
-			.leftColor(stepColor)
-			.build());
-		panelComponent.getChildren().add(LineComponent.builder()
-			.left(action.getDetail())
-			.build());
+		InventorySnapshot inv = rotationHelper.getSnapshot();
 
 		panelComponent.getChildren().add(LineComponent.builder()
-			.left("Blocks")
-			.right(inv.getDenseBlocks() + " dense / " + inv.getDarkBlocks() + " dark")
-			.build());
-		panelComponent.getChildren().add(LineComponent.builder()
-			.left("Fragments")
-			.right(String.valueOf(inv.getFragments()))
-			.build());
-		panelComponent.getChildren().add(LineComponent.builder()
-			.left("Trips")
-			.right(String.valueOf(rotationHelper.getTripsCompleted()))
+			.left(mode == RcMode.SOUL ? "Souls" : "Bloods")
+			.leftColor(mode.getColor())
 			.build());
 
-		if (mode == RcMode.BLOOD)
+		if (inRotation)
 		{
-			String essence;
-			if (inv.isHasActiveBloodEssence())
+			Color stepColor = action.getColor() != null ? action.getColor() : Color.WHITE;
+			panelComponent.getChildren().add(line("Next", action.getStep().getLabel(), stepColor));
+		}
+
+		if (inv != null)
+		{
+			panelComponent.getChildren().add(line("Dense", String.valueOf(inv.getDenseBlocks()), LABEL));
+			panelComponent.getChildren().add(line("Dark", String.valueOf(inv.getDarkBlocks()), LABEL));
+			panelComponent.getChildren().add(line("Fragments", String.valueOf(inv.getFragments()), LABEL));
+			panelComponent.getChildren().add(line("Trips", String.valueOf(rotationHelper.getTripsCompleted()), LABEL));
+
+			if (mode == RcMode.BLOOD)
 			{
-				Integer charges = reminderService.getBloodEssenceCharges();
-				essence = charges != null ? charges + " charges" : "active (check)";
+				panelComponent.getChildren().add(line("Essence", essenceText(inv), essenceColor(inv)));
 			}
-			else if (inv.isHasInactiveBloodEssence())
-			{
-				essence = "inactive";
-			}
-			else
-			{
-				essence = "none";
-			}
+		}
+
+		for (String warning : warnings)
+		{
 			panelComponent.getChildren().add(LineComponent.builder()
-				.left("Essence")
-				.right(essence)
-				.rightColor(inv.isHasActiveBloodEssence() ? Color.GREEN : Color.ORANGE)
+				.left(warning)
+				.leftColor(WARN)
 				.build());
 		}
 
 		return super.render(graphics);
+	}
+
+	private static LineComponent line(String left, String right, Color rightColor)
+	{
+		return LineComponent.builder()
+			.left(left)
+			.leftColor(LABEL)
+			.right(right)
+			.rightColor(rightColor)
+			.build();
+	}
+
+	private String essenceText(InventorySnapshot inv)
+	{
+		if (inv.isHasActiveBloodEssence())
+		{
+			Integer charges = reminderService.getBloodEssenceCharges();
+			if (charges != null)
+			{
+				return charges + " charges";
+			}
+			return "active";
+		}
+		if (inv.isHasInactiveBloodEssence())
+		{
+			return config.bloodEssenceReminder() ? "activate" : "inactive";
+		}
+		return config.bloodEssenceReminder() ? "need one" : "none";
+	}
+
+	private Color essenceColor(InventorySnapshot inv)
+	{
+		if (inv.isHasActiveBloodEssence())
+		{
+			Integer charges = reminderService.getBloodEssenceCharges();
+			if (config.bloodEssenceReminder()
+				&& charges != null
+				&& charges <= config.bloodEssenceLowCharges())
+			{
+				return WARN;
+			}
+			return ESSENCE_OK;
+		}
+		return config.bloodEssenceReminder() ? WARN : LABEL;
 	}
 }

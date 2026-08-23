@@ -1,5 +1,6 @@
 package com.zeahrchelper.overlay;
 
+import com.zeahrchelper.AgilityShortcut;
 import com.zeahrchelper.HelperAction;
 import com.zeahrchelper.RotationHelper;
 import com.zeahrchelper.ZeahRcHelperConfig;
@@ -64,7 +65,7 @@ public class NextClickOverlay extends Overlay
 		Color base = action.getColor() != null ? action.getColor() : Color.CYAN;
 		if (config.showPath())
 		{
-			renderPath(graphics, action.getPath(), action.getPathGapAfter(), base);
+			renderPath(graphics, action.getPath(), base);
 		}
 		if (config.highlightNextClick())
 		{
@@ -80,7 +81,7 @@ public class NextClickOverlay extends Overlay
 		return null;
 	}
 
-	private void renderPath(Graphics2D graphics, List<WorldPoint> path, WorldPoint pathGapAfter, Color base)
+	private void renderPath(Graphics2D graphics, List<WorldPoint> path, Color base)
 	{
 		if (path == null || path.size() < 2)
 		{
@@ -111,6 +112,7 @@ public class NextClickOverlay extends Overlay
 
 		WorldPoint here = player == null ? null : player.getWorldLocation();
 		WorldPoint prevTile = here;
+		boolean pendingGap = false;
 		for (int i = 0; i < path.size(); i++)
 		{
 			WorldPoint tile = path.get(i);
@@ -123,14 +125,19 @@ public class NextClickOverlay extends Overlay
 			LocalPoint local = LocalPoint.fromWorld(worldView, tile);
 			if (local == null)
 			{
+				pendingGap = true;
+				prevTile = tile;
 				continue;
 			}
 			Point canvas = Perspective.localToCanvas(client, local, plane);
 			if (canvas == null)
 			{
+				pendingGap = true;
+				prevTile = tile;
 				continue;
 			}
-			boolean gap = pathGapAfter != null && prevTile != null && prevTile.equals(pathGapAfter);
+			boolean gap = pendingGap || AgilityShortcut.hopBetween(prevTile, tile);
+			pendingGap = false;
 			if (!started)
 			{
 				line.moveTo(canvas.getX(), canvas.getY());

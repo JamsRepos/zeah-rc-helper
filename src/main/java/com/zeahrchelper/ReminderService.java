@@ -115,22 +115,17 @@ public class ReminderService
 			addGearWarnings(inv, mode);
 		}
 
-		if (config.bloodEssenceReminder() && mode == RcMode.BLOOD)
-		{
-			addEssenceWarnings(inv);
-		}
-
 	}
 
 	private void addGearWarnings(InventorySnapshot inv, RcMode mode)
 	{
 		if (!inv.isHasChisel())
 		{
-			warnings.add("Bring a chisel");
+			warnings.add("Need a chisel");
 		}
 		if (!inv.isHasPickaxe())
 		{
-			warnings.add("Bring a pickaxe (worn or in inventory)");
+			warnings.add("Need a pickaxe");
 		}
 		addLanternWarnings(inv, mode);
 	}
@@ -141,11 +136,11 @@ public class ReminderService
 		{
 			if (inv.isLanternInInventory())
 			{
-				warnings.add("Equip your abyssal lantern (shield slot)");
+				warnings.add("Equip your lantern");
 			}
 			else
 			{
-				warnings.add("Bring and equip your abyssal lantern");
+				warnings.add("Need a lantern");
 			}
 			return;
 		}
@@ -158,23 +153,13 @@ public class ReminderService
 		int id = inv.getLanternItemId();
 		if (id == ItemID.ABYSSAL_LANTERN)
 		{
-			warnings.add(mode == RcMode.BLOOD
-				? "Light the lantern with blisterwood logs (20% more bloods), or magic/redwood"
-				: "Light the lantern with magic logs (10% more runes) or redwood");
+			warnings.add("Light your lantern");
 			return;
 		}
 
-		boolean useful = isUsefulLantern(id, mode);
-		if (!useful)
+		if (!isUsefulLantern(id, mode))
 		{
-			if (mode == RcMode.BLOOD)
-			{
-				warnings.add("Lantern logs don't help bloods — use blisterwood (20%), magic (10%), or redwood");
-			}
-			else
-			{
-				warnings.add("Lantern logs don't help souls — use magic (10%) or redwood (willow 5% also works)");
-			}
+			warnings.add("Wrong lantern logs");
 		}
 	}
 
@@ -190,26 +175,6 @@ public class ReminderService
 			return true;
 		}
 		return mode == RcMode.BLOOD && id == ItemID.ABYSSAL_LANTERN_BLISTERWOOD;
-	}
-
-	private void addEssenceWarnings(InventorySnapshot inv)
-	{
-		if (inv.isHasActiveBloodEssence())
-		{
-			if (bloodEssenceCharges != null && bloodEssenceCharges <= config.bloodEssenceLowCharges())
-			{
-				warnings.add("Blood essence low — " + bloodEssenceCharges + " charges left");
-			}
-			return;
-		}
-
-		if (inv.isHasInactiveBloodEssence())
-		{
-			warnings.add("Activate your blood essence (+50% blood runes)");
-			return;
-		}
-
-		warnings.add("Bring activated blood essence for +50% blood runes");
 	}
 
 	private void syncBloodEssenceCharges(InventorySnapshot inv)

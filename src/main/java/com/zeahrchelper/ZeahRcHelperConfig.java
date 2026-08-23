@@ -6,9 +6,12 @@ import net.runelite.client.config.ConfigItem;
 import net.runelite.client.config.ConfigSection;
 import net.runelite.client.config.Range;
 
-@ConfigGroup("zeah-rc-helper")
+@ConfigGroup(ZeahRcHelperConfig.GROUP)
 public interface ZeahRcHelperConfig extends Config
 {
+	String GROUP = "zeah-rc-helper";
+	String SEEN_CHANGELOG_VERSION_KEY = "seenChangelogVersion";
+
 	@ConfigSection(
 		name = "Helper",
 		description = "Click-here rotation guidance",
@@ -61,8 +64,8 @@ public interface ZeahRcHelperConfig extends Config
 
 	@ConfigItem(
 		keyName = "showPath",
-		name = "Show path",
-		description = "Draw a line on the floor to your destination, using agility shortcuts you qualify for.",
+		name = "Show path on floor",
+		description = "Draw a line on the ground to your next destination.",
 		section = helperSection,
 		position = 3
 	)
@@ -72,11 +75,23 @@ public interface ZeahRcHelperConfig extends Config
 	}
 
 	@ConfigItem(
-		keyName = "showStatusPanel",
-		name = "Show status panel",
-		description = "Show the current step, fragment/block counts, and trip counter",
+		keyName = "showMinimapPath",
+		name = "Show path on minimap",
+		description = "Draw the same path on the minimap. You can use this with or without the floor line.",
 		section = helperSection,
 		position = 4
+	)
+	default boolean showMinimapPath()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "showStatusPanel",
+		name = "Show status panel",
+		description = "Compact panel for the current step, inventory counts, and reminders",
+		section = helperSection,
+		position = 5
 	)
 	default boolean showStatusPanel()
 	{
@@ -155,5 +170,16 @@ public interface ZeahRcHelperConfig extends Config
 	default boolean idleFlash()
 	{
 		return false;
+	}
+
+	@ConfigItem(
+		keyName = SEEN_CHANGELOG_VERSION_KEY,
+		name = "Seen changelog version",
+		description = "Last Zeah RC Helper version whose update notes were shown in chat.",
+		hidden = true
+	)
+	default String seenChangelogVersion()
+	{
+		return "";
 	}
 }

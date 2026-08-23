@@ -28,7 +28,7 @@ dependencies {
 }
 
 group = 'com.zeahrchelper'
-version = '1.0.1'
+version = '1.0.2' // Keep Changelog.VERSION
 
 tasks.withType(JavaCompile).configureEach {
 	options.encoding = 'UTF-8'

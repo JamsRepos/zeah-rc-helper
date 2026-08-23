@@ -3,7 +3,7 @@ package com.zeahrchelper;
 import com.google.inject.Provides;
 import com.zeahrchelper.overlay.IdleTintOverlay;
 import com.zeahrchelper.overlay.NextClickOverlay;
-import com.zeahrchelper.overlay.ReminderOverlay;
+import com.zeahrchelper.overlay.PathMinimapOverlay;
 import com.zeahrchelper.overlay.StatusOverlay;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +21,7 @@ import net.runelite.api.events.VarbitChanged;
 import net.runelite.api.events.WallObjectDespawned;
 import net.runelite.api.events.WallObjectSpawned;
 import net.runelite.api.gameval.VarbitID;
+import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
@@ -43,10 +44,10 @@ public class ZeahRcHelperPlugin extends Plugin
 	private NextClickOverlay nextClickOverlay;
 
 	@Inject
-	private StatusOverlay statusOverlay;
+	private PathMinimapOverlay pathMinimapOverlay;
 
 	@Inject
-	private ReminderOverlay reminderOverlay;
+	private StatusOverlay statusOverlay;
 
 	@Inject
 	private IdleTintOverlay idleTintOverlay;
@@ -63,6 +64,12 @@ public class ZeahRcHelperPlugin extends Plugin
 	@Inject
 	private SceneTracker sceneTracker;
 
+	@Inject
+	private ChangelogService changelogService;
+
+	@Inject
+	private ClientThread clientThread;
+
 	@Override
 	protected void startUp()
 	{
@@ -72,9 +79,10 @@ public class ZeahRcHelperPlugin extends Plugin
 		sceneTracker.reset();
 		sceneTracker.scanScene();
 		overlayManager.add(nextClickOverlay);
+		overlayManager.add(pathMinimapOverlay);
 		overlayManager.add(statusOverlay);
-		overlayManager.add(reminderOverlay);
 		overlayManager.add(idleTintOverlay);
+		clientThread.invoke(changelogService::maybeAnnounce);
 		log.debug("Zeah RC Helper started");
 	}
 
@@ -82,12 +90,13 @@ public class ZeahRcHelperPlugin extends Plugin
 	protected void shutDown()
 	{
 		overlayManager.remove(nextClickOverlay);
+		overlayManager.remove(pathMinimapOverlay);
 		overlayManager.remove(statusOverlay);
-		overlayManager.remove(reminderOverlay);
 		overlayManager.remove(idleTintOverlay);
 		rotationHelper.reset();
 		reminderService.reset();
 		sceneTracker.reset();
+		changelogService.reset();
 	}
 
 	@Subscribe
@@ -164,6 +173,7 @@ public class ZeahRcHelperPlugin extends Plugin
 	@Subscribe
 	public void onGameStateChanged(GameStateChanged event)
 	{
+		changelogService.onGameStateChanged(event);
 		if (event.getGameState() == GameState.LOADING)
 		{
 			sceneTracker.reset();

@@ -23,8 +23,9 @@ For Jagex accounts, follow [Using Jagex Accounts](https://github.com/runelite/ru
 ## Features
 
 - **Next-click highlight** — flashes the runestone, agility shortcut, or altar you should click next. Runestone selection follows the same varbit logic as Easy Arceuus Runecrafting and swaps when a stone depletes.
-- **Floor path** — draws a line to your destination while travelling. Uses agility shortcuts you qualify for: 69 north (mine ↔ Dark Altar), 73 west (Blood Altar → mine), 52 east (mine ↔ soul path), and 49 boulder (soul approach → mine). Hidden when you are already at the target.
-- **Status panel** — current step, dense/dark/fragment counts, and trip counter.
+- **Path** — draws a line to your destination on the floor and/or the minimap (each can be turned off). Uses the real stand/land tiles for agility shortcuts you qualify for: 69 north (mine ↔ Dark Altar), 73 west (Blood Altar → mine), 52 east (mine ↔ soul path), and 49 boulder (soul approach → mine). Hidden when you are already at the target. The next-click highlight flashes a shortcut only when that path actually uses it.
+- **Status panel** — compact current step, dense/dark/fragment counts, trip counter, and gear or essence reminders in one overlay. Bloods is red and Souls is teal.
+- **Update notes** — after you log in, chat shows what changed since the last version you ran.
 - **Gear reminders** — chisel (including jeweller's), pickaxe, and abyssal lantern. Optional lantern log-type check:
   - Bloods: blisterwood (20% more bloods), magic (10% all runes), or redwood
   - Souls: magic or redwood (willow also gives +5% runes). Blisterwood only helps bloods.
@@ -52,8 +53,9 @@ Same pattern for bloods (77 RC) and souls (90 RC) — only the altar changes:
 | Rune type | Auto | Blood, Soul, or Auto (soul at 90 RC) |
 | Enable helper | On | Master toggle for overlays |
 | Highlight next click | On | Object clickbox highlight |
-| Show path | On | Floor path to destination |
-| Show status panel | On | Step and inventory panel |
+| Show path on floor | On | Floor path to destination |
+| Show path on minimap | On | Same path on the minimap |
+| Show status panel | On | Step, counts, and reminders |
 | Gear reminders | On | Chisel, pickaxe, and lantern |
 | Check lantern logs | On | Warn on wrong/unlit logs |
 | Blood essence reminder | On | Blood mode only |
