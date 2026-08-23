@@ -1,75 +1,79 @@
 # Zeah RC Helper
 
-RuneLite plugin for Arceuus blood and soul runecrafting. It walks you through the full rotation with next-click highlights, floor paths, a status panel, and reminders for your lantern and blood essence.
+A click-here helper for Arceuus blood and soul runecrafting. It highlights what to click next, draws a path there, and keeps your inventory counts and gear reminders in one small panel.
 
-> **Note:** This plugin conflicts with [Easy Arceuus Runecrafting](https://github.com/poi56iop/easy-arceuus-runecrafting). Only one can be enabled at a time.
+This plugin conflicts with [Easy Arceuus Runecrafting](https://github.com/poi56iop/easy-arceuus-runecrafting). Only one can be enabled at a time.
 
-## Install
+## What you see
 
-### Plugin Hub
+- **Next click** — the runestone, shortcut, or altar you should click is highlighted.
+- **Path** — a line on the floor and/or minimap to where you are going. Shortcuts you qualify for are used automatically. Turn either line off in settings if you prefer.
+- **Status panel** — what to do next, plus:
+  - **Dense** — uncharged blocks from the mine
+  - **Dark** — blocks after the Dark Altar
+  - **Fragments** — chiselled essence ready to craft
+  - **Trips** — finished runs this session
+  - **Essence** — blood essence status (bloods only)
+- **Reminders** — the same panel tells you if you are missing a chisel, pickaxe, lantern, or blood essence, or if you have stood still too long.
 
-Search for **Zeah RC Helper** in the RuneLite Plugin Hub (Configuration → Plugin Hub).
+Bloods show in red and Souls in teal. Auto uses souls at 90 Runecraft, otherwise bloods.
 
-### Build from source
-
-Requires JDK 11+.
-
-```bash
-./gradlew run
-```
-
-For Jagex accounts, follow [Using Jagex Accounts](https://github.com/runelite/runelite/wiki/Using-Jagex-Accounts).
-
-## Features
-
-- **Next-click highlight** — flashes the runestone, agility shortcut, or altar you should click next. Runestone selection follows the same varbit logic as Easy Arceuus Runecrafting and swaps when a stone depletes.
-- **Path** — draws a line to your destination on the floor and/or the minimap (each can be turned off). Uses the real stand/land tiles for agility shortcuts you qualify for: 69 north (mine ↔ Dark Altar), 73 west (Blood Altar → mine), 52 east (mine ↔ soul path), and 49 boulder (soul approach → mine). Hidden when you are already at the target. The next-click highlight flashes a shortcut only when that path actually uses it.
-- **Status panel** — compact current step, dense/dark/fragment counts, trip counter, and gear or essence reminders in one overlay. Bloods is red and Souls is teal.
-- **Update notes** — after you log in, chat shows what changed since the last version you ran.
-- **Gear reminders** — chisel (including jeweller's), pickaxe, and abyssal lantern. Optional lantern log-type check:
-  - Bloods: blisterwood (20% more bloods), magic (10% all runes), or redwood
-  - Souls: magic or redwood (willow also gives +5% runes). Blisterwood only helps bloods.
-- **Blood essence** (blood mode) — reminds you to bring and activate it, and tracks charges from activate/craft chat (and Item Charges if available). Warns at a configurable charge threshold.
-- **Idle reminder** — warns if you stand still in the Arceuus RC area too long. Optional gentle screen tint (off by default).
+After an update, chat shows what changed the first time you log in.
 
 ## The rotation
 
-Same pattern for bloods (77 RC) and souls (90 RC) — only the altar changes:
+Same loop for bloods (77 Runecraft) and souls (90). Only the final altar changes.
 
-1. Mine a full inventory of dense essence
-2. Venerate at the Dark Altar
-3. Chisel into fragments while running back to the mine
-4. Mine a second inventory (keep the fragment stack)
-5. Venerate the second inventory
-6. Run to the Blood or Soul Altar
-7. Craft the fragments
-8. Chisel the remaining dark blocks
-9. Craft the second batch, then return to the mine
+1. Mine a full inventory of dense essence.
+2. Venerate at the Dark Altar.
+3. Chisel into fragments while running back to the mine.
+4. Mine a second inventory (keep the fragment stack).
+5. Venerate the second inventory.
+6. Run to the Blood or Soul Altar.
+7. Craft the fragments.
+8. Chisel the remaining dark blocks.
+9. Craft the second batch, then return to the mine.
 
-## Configuration
+## What to bring
 
-| Setting | Default | Description |
-| --- | --- | --- |
-| Rune type | Auto | Blood, Soul, or Auto (soul at 90 RC) |
-| Enable helper | On | Master toggle for overlays |
-| Highlight next click | On | Object clickbox highlight |
-| Show path on floor | On | Floor path to destination |
-| Show path on minimap | On | Same path on the minimap |
-| Show status panel | On | Step, counts, and reminders |
-| Gear reminders | On | Chisel, pickaxe, and lantern |
-| Check lantern logs | On | Warn on wrong/unlit logs |
-| Blood essence reminder | On | Blood mode only |
-| Low essence charges | 100 | Warn at or below this charge count |
-| Idle reminder | 15s | Idle warning delay |
-| Idle screen tint | Off | Optional screen tint when idle |
+- A **chisel** (jeweller's chisel is fine) and a **pickaxe**
+- An **abyssal lantern** in the shield slot
+  - Bloods: blisterwood (best), magic, or redwood
+  - Souls: magic or redwood (willow also works). Blisterwood only helps bloods.
+- **Blood essence**, activated, if you are doing bloods
+
+## Settings
+
+Everything is on by default except the idle screen tint.
+
+| Setting | What it does |
+| --- | --- |
+| Rune type | Blood, Soul, or Auto (souls at 90 Runecraft) |
+| Enable helper | Turns the highlights, path, and panel on or off |
+| Highlight next click | Outline on the next object |
+| Show path on floor | Line on the ground |
+| Show path on minimap | Same line on the minimap |
+| Show status panel | Step, counts, and reminders |
+| Gear reminders | Warn if chisel, pickaxe, or lantern is missing |
+| Check lantern logs | Warn if the lantern is unlit or using logs that do not help this method |
+| Blood essence reminder | Warn to bring / activate essence, and when charges are low (bloods only) |
+| Low essence charges | Charge count that counts as low (default 100) |
+| Idle reminder | How long you can stand still before a warning |
+| Idle screen tint | Optional faint tint when idle |
+
+---
 
 ## Development
+
+Requires JDK 11+.
 
 ```bash
 ./gradlew test        # unit tests
 ./gradlew shadowJar   # build plugin jar
 ./gradlew run         # launch dev client
 ```
+
+For Jagex accounts, follow [Using Jagex Accounts](https://github.com/runelite/runelite/wiki/Using-Jagex-Accounts).
 
 ## License
 
