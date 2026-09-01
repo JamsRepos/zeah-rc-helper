@@ -20,7 +20,7 @@ final class Changelog
 			"Bloods and Souls use their rune colours on the method name and altar path."
 		),
 		new Release("1.0.3",
-			"Renamed to Jam's Arceuus Runecrafting in the plugin panel and Hub."
+			"Renamed from Zeah RC Helper to Jam's Arceuus Runecrafting in the plugin panel and Hub."
 		)
 	);
 
