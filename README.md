@@ -1,4 +1,4 @@
-# Zeah RC Helper
+# Jam's Arceuus Runecrafting
 
 A click-here helper for Arceuus blood and soul runecrafting. It highlights what to click next, draws a path there, and keeps your inventory counts and gear reminders in one small panel.
 

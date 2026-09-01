@@ -30,7 +30,7 @@ import net.runelite.client.ui.overlay.OverlayManager;
 
 @Slf4j
 @PluginDescriptor(
-	name = "Zeah RC Helper",
+	name = "Jam's Arceuus Runecrafting",
 	description = "Click-here helper for Arceuus blood and soul runecrafting, with lantern and blood essence reminders",
 	tags = {"runecraft", "runecrafting", "blood", "soul", "arceuus", "zeah", "kourend", "skilling"},
 	conflicts = {"Easy Arceuus Runecrafting", "easy-arceuus-runecrafting"}
@@ -83,7 +83,7 @@ public class ZeahRcHelperPlugin extends Plugin
 		overlayManager.add(statusOverlay);
 		overlayManager.add(idleTintOverlay);
 		clientThread.invoke(changelogService::maybeAnnounce);
-		log.debug("Zeah RC Helper started");
+		log.debug("Jam's Arceuus Runecrafting started");
 	}
 
 	@Override

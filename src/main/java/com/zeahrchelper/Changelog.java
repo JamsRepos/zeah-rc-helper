@@ -11,13 +11,16 @@ import java.util.List;
  */
 final class Changelog
 {
-	static final String VERSION = "1.0.2";
+	static final String VERSION = "1.0.3";
 
 	static final List<Release> RELEASES = List.of(
 		new Release("1.0.2",
 			"Status panel is one compact overlay with labeled Dense, Dark, Fragments, Trips, and Essence.",
 			"Gear reminders now appear in that panel instead of a second overlay.",
 			"Bloods and Souls use their rune colours on the method name and altar path."
+		),
+		new Release("1.0.3",
+			"Renamed to Jam's Arceuus Runecrafting in the plugin panel and Hub."
 		)
 	);
 

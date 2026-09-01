@@ -48,7 +48,7 @@ public class StatusOverlay extends OverlayPanel
 		panelComponent.setBorder(new Rectangle(8, 8, 8, 8));
 		panelComponent.setGap(new Point(0, 4));
 		panelComponent.setPreferredSize(SIZE);
-		addMenuEntry(MenuAction.RUNELITE_OVERLAY_CONFIG, OPTION_CONFIGURE, "Zeah RC Helper");
+		addMenuEntry(MenuAction.RUNELITE_OVERLAY_CONFIG, OPTION_CONFIGURE, "Jam's Arceuus Runecrafting");
 	}
 
 	@Override

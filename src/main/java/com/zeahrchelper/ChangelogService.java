@@ -58,7 +58,7 @@ public class ChangelogService
 		announced = true;
 		for (Changelog.Release release : unseen)
 		{
-			chat("Zeah RC Helper " + release.version + " — what's new:");
+			chat("Jam's Arceuus Runecrafting " + release.version + " — what's new:");
 			for (String note : release.notes)
 			{
 				chat("• " + note);
@@ -79,7 +79,7 @@ public class ChangelogService
 	{
 		String formatted = new ChatMessageBuilder()
 			.append(ChatColorType.HIGHLIGHT)
-			.append("[Zeah RC] " + message)
+			.append("[JARC] " + message)
 			.build();
 		chatMessageManager.queue(QueuedMessage.builder()
 			.type(ChatMessageType.CONSOLE)

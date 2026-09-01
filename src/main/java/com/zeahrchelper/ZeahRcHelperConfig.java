@@ -175,7 +175,7 @@ public interface ZeahRcHelperConfig extends Config
 	@ConfigItem(
 		keyName = SEEN_CHANGELOG_VERSION_KEY,
 		name = "Seen changelog version",
-		description = "Last Zeah RC Helper version whose update notes were shown in chat.",
+		description = "Last Jam's Arceuus Runecrafting version whose update notes were shown in chat.",
 		hidden = true
 	)
 	default String seenChangelogVersion()
