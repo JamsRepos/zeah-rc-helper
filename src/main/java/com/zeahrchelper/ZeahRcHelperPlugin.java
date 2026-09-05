@@ -24,6 +24,7 @@ import net.runelite.api.gameval.VarbitID;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.overlay.OverlayManager;
@@ -68,11 +69,18 @@ public class ZeahRcHelperPlugin extends Plugin
 	private ChangelogService changelogService;
 
 	@Inject
+	private PathDisplayMigration pathDisplayMigration;
+
+	@Inject
+	private ShortestPathBridge shortestPathBridge;
+
+	@Inject
 	private ClientThread clientThread;
 
 	@Override
 	protected void startUp()
 	{
+		pathDisplayMigration.run();
 		rotationHelper.reset();
 		reminderService.reset();
 		inventoryChecker.reset();
@@ -97,6 +105,22 @@ public class ZeahRcHelperPlugin extends Plugin
 		reminderService.reset();
 		sceneTracker.reset();
 		changelogService.reset();
+		shortestPathBridge.clear();
+	}
+
+	@Subscribe
+	public void onConfigChanged(ConfigChanged event)
+	{
+		if (!ZeahRcHelperConfig.GROUP.equals(event.getGroup()))
+		{
+			return;
+		}
+		String key = event.getKey();
+		if (ZeahRcHelperConfig.PATH_DISPLAY_KEY.equals(key)
+			|| ZeahRcHelperConfig.PATH_PROVIDER_KEY.equals(key))
+		{
+			shortestPathBridge.clear();
+		}
 	}
 
 	@Subscribe
@@ -188,6 +212,7 @@ public class ZeahRcHelperPlugin extends Plugin
 			reminderService.reset();
 			inventoryChecker.reset();
 			sceneTracker.reset();
+			shortestPathBridge.clear();
 		}
 	}
 

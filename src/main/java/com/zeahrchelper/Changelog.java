@@ -11,7 +11,7 @@ import java.util.List;
  */
 final class Changelog
 {
-	static final String VERSION = "1.0.3";
+	static final String VERSION = "1.0.4";
 
 	static final List<Release> RELEASES = List.of(
 		new Release("1.0.2",
@@ -21,6 +21,11 @@ final class Changelog
 		),
 		new Release("1.0.3",
 			"Renamed from Zeah RC Helper to Jam's Arceuus Runecrafting in the plugin panel and Hub."
+		),
+		new Release("1.0.4",
+			"The two path checkboxes are now one Path display dropdown: floor & minimap, floor only, minimap only, or off. Your old choice carries over.",
+			"Added a Path source dropdown so the Shortest Path plugin can draw the route instead, coloured by the current step.",
+			"Shortest Path uses walkable stand tiles and no longer restarts every few ticks, so the purple unreachable flash should stay gone."
 		)
 	);
 

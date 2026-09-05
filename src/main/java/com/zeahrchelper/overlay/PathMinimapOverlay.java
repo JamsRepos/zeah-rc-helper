@@ -48,7 +48,7 @@ public class PathMinimapOverlay extends Overlay
 	@Override
 	public Dimension render(Graphics2D graphics)
 	{
-		if (!config.enableHelper() || !config.showMinimapPath())
+		if (!config.enableHelper() || !config.pathDisplay().showsMinimap())
 		{
 			return null;
 		}

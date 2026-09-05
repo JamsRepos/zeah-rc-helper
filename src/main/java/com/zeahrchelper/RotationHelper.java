@@ -26,6 +26,7 @@ public class RotationHelper
 	private final ReminderService reminderService;
 	private final SceneTracker sceneTracker;
 	private final RcPathRouter pathRouter;
+	private final ShortestPathBridge shortestPathBridge;
 
 	@Getter
 	private HelperAction currentAction = HelperAction.idle();
@@ -48,7 +49,8 @@ public class RotationHelper
 		InventoryChecker inventoryChecker,
 		ReminderService reminderService,
 		SceneTracker sceneTracker,
-		RcPathRouter pathRouter)
+		RcPathRouter pathRouter,
+		ShortestPathBridge shortestPathBridge)
 	{
 		this.client = client;
 		this.config = config;
@@ -56,6 +58,7 @@ public class RotationHelper
 		this.reminderService = reminderService;
 		this.sceneTracker = sceneTracker;
 		this.pathRouter = pathRouter;
+		this.shortestPathBridge = shortestPathBridge;
 	}
 
 	public void reset()
@@ -64,6 +67,7 @@ public class RotationHelper
 		tripsCompleted = 0;
 		lastStep = RotationStep.IDLE;
 		pathRouter.reset();
+		shortestPathBridge.clear();
 		inventoryChecker.reset();
 	}
 
@@ -73,6 +77,7 @@ public class RotationHelper
 		{
 			currentAction = HelperAction.idle();
 			pathRouter.reset();
+			shortestPathBridge.clear();
 			reminderService.update(snapshot, resolvedMode, false);
 			return;
 		}
@@ -85,6 +90,7 @@ public class RotationHelper
 		{
 			currentAction = HelperAction.idle();
 			pathRouter.reset();
+			shortestPathBridge.clear();
 			return;
 		}
 
@@ -102,6 +108,8 @@ public class RotationHelper
 		WorldPoint end = pathEnd(destination, step, start);
 		WorldView worldView = client.getTopLevelWorldView();
 		int agility = client.getRealSkillLevel(Skill.AGILITY);
+		Color color = colorFor(step);
+		boolean ownPath = !config.pathDisplay().isOff() && !shortestPathBridge.isDriving();
 		List<WorldPoint> path = pathRouter.pathTo(
 			worldView,
 			start,
@@ -110,15 +118,46 @@ public class RotationHelper
 			agility,
 			resolvedMode,
 			atMine,
-			config.showPath() || config.showMinimapPath());
+			ownPath);
 		RcPathRouter.ClickTarget click = pathRouter.nextClick(step, destination, path, start, atMine);
+		shortestPathBridge.update(shortestPathTarget(end, step), color);
 		currentAction = new HelperAction(
 			step,
 			detailFor(step, snapshot),
 			path,
 			click.getObject(),
 			click.getTile(),
-			colorFor(step));
+			color);
+	}
+
+	/**
+	 * Shortest Path targets must be walkable. Object SW tiles (runestones, altars) are often
+	 * collision-blocked, which makes SP report "Destination could not be reached".
+	 */
+	private WorldPoint shortestPathTarget(WorldPoint end, RotationStep step)
+	{
+		if (end == null)
+		{
+			return null;
+		}
+		switch (step)
+		{
+			case MINE_FIRST:
+			case MINE_SECOND:
+			case CHISEL_AND_RETURN:
+			case RETURN_TO_MINE:
+				return ZeahRcArea.MINE_STAND;
+			case GO_DARK_FIRST:
+			case GO_DARK_SECOND:
+				return ZeahRcArea.DARK_ALTAR;
+			case GO_ALTAR:
+			case CRAFT_FRAGMENTS:
+			case CRAFT_REMAINING:
+			case CHISEL_AT_ALTAR:
+				return resolvedMode == RcMode.SOUL ? ZeahRcArea.SOUL_ALTAR : ZeahRcArea.BLOOD_ALTAR;
+			default:
+				return end;
+		}
 	}
 
 	private TileObject destinationObject(RotationStep step)
