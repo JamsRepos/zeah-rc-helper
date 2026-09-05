@@ -7,7 +7,7 @@ This plugin conflicts with [Easy Arceuus Runecrafting](https://github.com/poi56i
 ## What you see
 
 - **Next click** — the runestone, shortcut, or altar you should click is highlighted.
-- **Path** — a line on the floor and/or minimap to where you are going. Shortcuts you qualify for are used automatically. Turn either line off in settings if you prefer.
+- **Path** — a line on the floor and/or minimap to where you are going. Shortcuts you qualify for are used automatically. Choose where it draws (or turn it off) under Path display. Optionally hand the destination to the [Shortest Path](https://runelite.net/plugin-hub/show/shortest-path) plugin under Path source.
 - **Status panel** — what to do next, plus:
   - **Dense** — uncharged blocks from the mine
   - **Dark** — blocks after the Dark Altar
@@ -51,8 +51,8 @@ Everything is on by default except the idle screen tint.
 | Rune type | Blood, Soul, or Auto (souls at 90 Runecraft) |
 | Enable helper | Turns the highlights, path, and panel on or off |
 | Highlight next click | Outline on the next object |
-| Show path on floor | Line on the ground |
-| Show path on minimap | Same line on the minimap |
+| Path display | Where the path is drawn: floor & minimap, floor only, minimap only, or off |
+| Path source | Plugin lines, or hand the destination to the [Shortest Path](https://runelite.net/plugin-hub/show/shortest-path) plugin coloured by the current step |
 | Show status panel | Step, counts, and reminders |
 | Gear reminders | Warn if chisel, pickaxe, or lantern is missing |
 | Check lantern logs | Warn if the lantern is unlit or using logs that do not help this method |
