@@ -82,6 +82,7 @@ class ShortestPathBridge
 		WorldPoint start = player == null ? null : player.getWorldLocation();
 		if (start == null)
 		{
+			clear();
 			return;
 		}
 
