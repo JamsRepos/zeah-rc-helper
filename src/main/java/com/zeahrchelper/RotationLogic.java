@@ -24,7 +24,7 @@ final class RotationLogic
 		boolean hasDark = inv.getDarkBlocks() > 0;
 		boolean hasDense = inv.getDenseBlocks() > 0;
 		boolean inventoryFull = inv.getEmptySlots() == 0;
-		boolean fullFragmentStack = inv.getFragments() >= FULL_FRAGMENTS;
+		boolean fullFragmentStack = inv.isFragmentsKnown() && inv.getFragments() >= FULL_FRAGMENTS;
 
 		if (atAltar)
 		{

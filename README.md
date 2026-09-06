@@ -9,7 +9,7 @@ This plugin conflicts with [Easy Arceuus Runecrafting](https://github.com/poi56i
 - **Next click** — the runestone, shortcut, or altar you should click is highlighted.
 - **Path** — a line on the floor and/or minimap to where you are going. Shortcuts you qualify for are used automatically. Choose where it draws (or turn it off) under Path display. Optionally hand the destination to the [Shortest Path](https://runelite.net/plugin-hub/show/shortest-path) plugin under Path source.
 - **Blood altar from Dark Altar** — after the second venerate, a filled tile marked **Stand Here** appears south of the Dark Altar; stand on it, then **Click Here** on the Blood Altar. The status panel spells out the same step. Paths to the Dark Altar use that stand tile so the Blood Altar stays loaded.
-- **Fragment count** — drawn on the fragment stack in your inventory (`?` until the plugin has watched or Count-checked the stack).
+- **Fragment count** — drawn on the fragment stack in your inventory (`?` until the plugin has watched a chisel or you Count-check the stack).
 - **Status panel** — what to do next, plus:
   - **Dense/Dark** — uncharged and venerated block counts (`12/26`)
   - **Trips** — finished runs this session

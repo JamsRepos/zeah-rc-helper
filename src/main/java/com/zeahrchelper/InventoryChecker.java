@@ -22,7 +22,6 @@ public class InventoryChecker
 	private static final int INVENTORY_SIZE = 28;
 	private static final int FRAGMENTS_PER_BLOCK = 4;
 	private static final int MAX_FRAGMENTS = 111;
-	private static final int TYPICAL_FULL_STACK = 108;
 	private static final Pattern COUNT_MANY = Pattern.compile(
 		"this stack of fragments is roughly equivalent to (\\d+) pieces? of essence",
 		Pattern.CASE_INSENSITIVE);
@@ -144,7 +143,7 @@ public class InventoryChecker
 		}
 
 		int widgetQty = fragmentQuantityFromWidget();
-		FragmentCount fragments = resolveFragmentCount(hasFragmentItem, fragmentQty, widgetQty, dark, empty);
+		FragmentCount fragments = resolveFragmentCount(hasFragmentItem, fragmentQty, widgetQty, dark);
 
 		ItemContainer equipment = client.getItemContainer(InventoryID.WORN);
 		if (equipment != null)
@@ -182,8 +181,7 @@ public class InventoryChecker
 		boolean hasFragmentItem,
 		int containerQty,
 		int widgetQty,
-		int dark,
-		int empty)
+		int dark)
 	{
 		if (!hasFragmentItem)
 		{
@@ -207,14 +205,9 @@ public class InventoryChecker
 				: gained;
 			fragmentsKnown = true;
 		}
-		else if ((!fragmentsKnown || trackedFragments <= 1) && empty == 0 && dark > 0)
-		{
-			// Second inventory: fragment stack + full bag of dark. Quantity is hidden as 1.
-			trackedFragments = TYPICAL_FULL_STACK;
-			fragmentsKnown = true;
-		}
 		else if (!fragmentsKnown)
 		{
+			// Hidden qty (incl. full second inventory): presence only until Count or a watched chisel.
 			trackedFragments = Math.max(1, trackedFragments);
 		}
 		else if (trackedFragments <= 0)

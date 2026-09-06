@@ -86,17 +86,38 @@ public class RotationLogicTest
 	}
 
 	@Test
+	public void unknownHighFragmentEstimateDoesNotForceAltar()
+	{
+		// Inferred/unwatched counts must not flip to GO_ALTAR; overlay would show "?" too.
+		assertEquals(RotationStep.CHISEL_AND_RETURN,
+			RotationLogic.infer(carryingUnknown(0, 10, 108), false, false, false,
+				RotationStep.GO_DARK_SECOND));
+	}
+
+	@Test
 	public void nearAltarWithFragmentsAndDarkGoesToAltar()
 	{
 		assertEquals(RotationStep.GO_ALTAR,
 			RotationLogic.infer(carrying(0, 10, 40), false, true, false, RotationStep.CHISEL_AND_RETURN));
+		assertEquals(RotationStep.GO_ALTAR,
+			RotationLogic.infer(carryingUnknown(0, 10, 1), false, true, false, RotationStep.CHISEL_AND_RETURN));
 	}
 
 	/** Fragments are one stackable slot; blocks take one slot each. */
 	private static InventorySnapshot carrying(int dense, int dark, int fragments)
 	{
+		return snapshot(dense, dark, fragments, true);
+	}
+
+	private static InventorySnapshot carryingUnknown(int dense, int dark, int fragments)
+	{
+		return snapshot(dense, dark, fragments, false);
+	}
+
+	private static InventorySnapshot snapshot(int dense, int dark, int fragments, boolean fragmentsKnown)
+	{
 		int used = dense + dark + (fragments > 0 ? 1 : 0);
 		return new InventorySnapshot(
-			dense, dark, fragments, SLOTS - used, true, true, false, false, true, false, -1, true);
+			dense, dark, fragments, SLOTS - used, true, true, false, false, true, false, -1, fragmentsKnown);
 	}
 }
