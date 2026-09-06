@@ -19,14 +19,8 @@ public class SessionStats
 	static final String KEY_TOTAL_TRIPS = "lifetimeTrips";
 	static final String KEY_TOTAL_BLOOD = "lifetimeBloodRunes";
 	static final String KEY_TOTAL_SOUL = "lifetimeSoulRunes";
-	static final String KEY_STATS_SCHEMA = "statsSchema";
-	private static final int STATS_SCHEMA = 3;
 	/** Ticks to wait for rune qty after fragments leave (split inventory updates). */
 	private static final int PENDING_TICKS = 5;
-
-	private static final String LEGACY_TOTAL_TRIPS = "totalTrips";
-	private static final String LEGACY_TOTAL_BLOOD = "totalBloodRunes";
-	private static final String LEGACY_TOTAL_SOUL = "totalSoulRunes";
 
 	@Nullable
 	private final ConfigManager configManager;
@@ -72,7 +66,6 @@ public class SessionStats
 
 	public void reloadTotalsFromProfile()
 	{
-		migrateStatsSchema();
 		totalTrips = readTotal(KEY_TOTAL_TRIPS);
 		totalBloodRunes = readTotal(KEY_TOTAL_BLOOD);
 		totalSoulRunes = readTotal(KEY_TOTAL_SOUL);
@@ -190,55 +183,6 @@ public class SessionStats
 		waitBloodBaseline = -1;
 		waitSoulBaseline = -1;
 		pendingTicksRemaining = 0;
-	}
-
-	private void migrateStatsSchema()
-	{
-		if (configManager == null)
-		{
-			return;
-		}
-		try
-		{
-			Integer schema = configManager.getRSProfileConfiguration(
-				ZeahRcHelperConfig.GROUP, KEY_STATS_SCHEMA, Integer.class);
-			if (schema != null && schema >= STATS_SCHEMA)
-			{
-				return;
-			}
-			unset(LEGACY_TOTAL_TRIPS);
-			unset(LEGACY_TOTAL_BLOOD);
-			unset(LEGACY_TOTAL_SOUL);
-			unset(KEY_TOTAL_TRIPS);
-			unset(KEY_TOTAL_BLOOD);
-			unset(KEY_TOTAL_SOUL);
-			tripsCompleted = 0;
-			bloodRunesCrafted = 0;
-			soulRunesCrafted = 0;
-			totalTrips = 0;
-			totalBloodRunes = 0;
-			totalSoulRunes = 0;
-			configManager.setRSProfileConfiguration(
-				ZeahRcHelperConfig.GROUP, KEY_STATS_SCHEMA, STATS_SCHEMA);
-		}
-		catch (Exception ignored)
-		{
-		}
-	}
-
-	private void unset(String key)
-	{
-		if (configManager == null)
-		{
-			return;
-		}
-		try
-		{
-			configManager.unsetRSProfileConfiguration(ZeahRcHelperConfig.GROUP, key);
-		}
-		catch (Exception ignored)
-		{
-		}
 	}
 
 	private int readTotal(String key)
