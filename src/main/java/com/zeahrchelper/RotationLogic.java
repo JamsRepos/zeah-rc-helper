@@ -39,7 +39,7 @@ final class RotationLogic
 			return RotationStep.RETURN_TO_MINE;
 		}
 
-		if (hasFrags && hasDark && (inventoryFull || fullFragmentStack || nearAltar))
+		if (hasFrags && hasDark && (fullFragmentStack || nearAltar))
 		{
 			return RotationStep.GO_ALTAR;
 		}

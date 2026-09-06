@@ -29,7 +29,7 @@ public class StatusOverlay extends OverlayPanel
 	private static final Color DETAIL = new Color(170, 170, 170);
 	private static final Color WARN = new Color(255, 168, 76);
 	private static final Color ESSENCE_OK = new Color(120, 200, 140);
-	private static final Dimension SIZE = new Dimension(200, 0);
+	private static final Dimension SIZE = new Dimension(166, 0);
 
 	private final ZeahRcHelperConfig config;
 	private final RotationHelper rotationHelper;
@@ -96,9 +96,12 @@ public class StatusOverlay extends OverlayPanel
 
 		if (inv != null)
 		{
-			panelComponent.getChildren().add(line("Dense", String.valueOf(inv.getDenseBlocks()), LABEL));
-			panelComponent.getChildren().add(line("Dark", String.valueOf(inv.getDarkBlocks()), LABEL));
-			panelComponent.getChildren().add(line("Fragments", String.valueOf(inv.getFragments()), LABEL));
+			panelComponent.getChildren().add(LineComponent.builder()
+				.left("Dense/Dark")
+				.leftColor(LABEL)
+				.right(inv.getDenseBlocks() + "/" + inv.getDarkBlocks())
+				.rightColor(LABEL)
+				.build());
 			panelComponent.getChildren().add(line("Trips", String.valueOf(rotationHelper.getTripsCompleted()), LABEL));
 
 			if (mode == RcMode.BLOOD && config.bloodEssenceReminder())

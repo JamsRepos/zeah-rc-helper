@@ -33,6 +33,7 @@ public class InventoryChecker
 	private final Client client;
 
 	private int trackedFragments;
+	private boolean fragmentsKnown;
 	private int lastDarkBlocks = -1;
 
 	@Inject
@@ -44,6 +45,7 @@ public class InventoryChecker
 	public void reset()
 	{
 		trackedFragments = 0;
+		fragmentsKnown = false;
 		lastDarkBlocks = -1;
 	}
 
@@ -53,6 +55,7 @@ public class InventoryChecker
 		if (COUNT_ONE.matcher(message).find())
 		{
 			trackedFragments = 1;
+			fragmentsKnown = true;
 			return;
 		}
 		Matcher many = COUNT_MANY.matcher(message);
@@ -61,6 +64,7 @@ public class InventoryChecker
 			try
 			{
 				trackedFragments = Math.min(MAX_FRAGMENTS, Integer.parseInt(many.group(1)));
+				fragmentsKnown = true;
 			}
 			catch (NumberFormatException ignored)
 			{
@@ -140,7 +144,7 @@ public class InventoryChecker
 		}
 
 		int widgetQty = fragmentQuantityFromWidget();
-		int fragments = resolveFragmentCount(hasFragmentItem, fragmentQty, widgetQty, dark, empty);
+		FragmentCount fragments = resolveFragmentCount(hasFragmentItem, fragmentQty, widgetQty, dark, empty);
 
 		ItemContainer equipment = client.getItemContainer(InventoryID.WORN);
 		if (equipment != null)
@@ -162,7 +166,7 @@ public class InventoryChecker
 		return new InventorySnapshot(
 			dense,
 			dark,
-			fragments,
+			fragments.quantity,
 			empty,
 			chisel,
 			pickaxe,
@@ -170,39 +174,69 @@ public class InventoryChecker
 			activeEssence,
 			lanternEquipped,
 			lanternInv,
-			lanternId);
+			lanternId,
+			fragments.known);
 	}
 
-	private int resolveFragmentCount(boolean hasFragmentItem, int containerQty, int widgetQty, int dark, int empty)
+	private FragmentCount resolveFragmentCount(
+		boolean hasFragmentItem,
+		int containerQty,
+		int widgetQty,
+		int dark,
+		int empty)
 	{
 		if (!hasFragmentItem)
 		{
 			trackedFragments = 0;
+			fragmentsKnown = false;
 			lastDarkBlocks = dark;
-			return 0;
+			return new FragmentCount(0, true);
 		}
 
 		int visible = Math.max(containerQty, widgetQty);
 		if (visible > 1)
 		{
 			trackedFragments = Math.min(MAX_FRAGMENTS, visible);
+			fragmentsKnown = true;
 		}
 		else if (lastDarkBlocks >= 0 && dark < lastDarkBlocks)
 		{
-			trackedFragments = Math.min(MAX_FRAGMENTS, trackedFragments + FRAGMENTS_PER_BLOCK * (lastDarkBlocks - dark));
+			int gained = FRAGMENTS_PER_BLOCK * (lastDarkBlocks - dark);
+			trackedFragments = fragmentsKnown
+				? Math.min(MAX_FRAGMENTS, trackedFragments + gained)
+				: gained;
+			fragmentsKnown = true;
 		}
-		else if (trackedFragments <= 1 && empty == 0 && dark > 0)
+		else if ((!fragmentsKnown || trackedFragments <= 1) && empty == 0 && dark > 0)
 		{
 			// Second inventory: fragment stack + full bag of dark. Quantity is hidden as 1.
 			trackedFragments = TYPICAL_FULL_STACK;
+			fragmentsKnown = true;
+		}
+		else if (!fragmentsKnown)
+		{
+			trackedFragments = Math.max(1, trackedFragments);
 		}
 		else if (trackedFragments <= 0)
 		{
 			trackedFragments = Math.max(1, visible);
+			fragmentsKnown = false;
 		}
 
 		lastDarkBlocks = dark;
-		return trackedFragments;
+		return new FragmentCount(trackedFragments, fragmentsKnown);
+	}
+
+	private static final class FragmentCount
+	{
+		private final int quantity;
+		private final boolean known;
+
+		private FragmentCount(int quantity, boolean known)
+		{
+			this.quantity = quantity;
+			this.known = known;
+		}
 	}
 
 	private int fragmentQuantityFromWidget()

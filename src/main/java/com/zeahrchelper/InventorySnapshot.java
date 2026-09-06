@@ -16,4 +16,6 @@ public class InventorySnapshot
 	boolean lanternEquipped;
 	boolean lanternInInventory;
 	int lanternItemId;
+	/** False when a fragment stack is present but the count was not watched or Count-checked. */
+	boolean fragmentsKnown;
 }

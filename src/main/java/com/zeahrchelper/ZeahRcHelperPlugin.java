@@ -1,6 +1,7 @@
 package com.zeahrchelper;
 
 import com.google.inject.Provides;
+import com.zeahrchelper.overlay.FragmentStackOverlay;
 import com.zeahrchelper.overlay.IdleTintOverlay;
 import com.zeahrchelper.overlay.NextClickOverlay;
 import com.zeahrchelper.overlay.PathMinimapOverlay;
@@ -53,6 +54,9 @@ public class ZeahRcHelperPlugin extends Plugin
 	private StatusOverlay statusOverlay;
 
 	@Inject
+	private FragmentStackOverlay fragmentStackOverlay;
+
+	@Inject
 	private IdleTintOverlay idleTintOverlay;
 
 	@Inject
@@ -85,6 +89,7 @@ public class ZeahRcHelperPlugin extends Plugin
 		overlayManager.add(nextClickOverlay);
 		overlayManager.add(pathMinimapOverlay);
 		overlayManager.add(statusOverlay);
+		overlayManager.add(fragmentStackOverlay);
 		overlayManager.add(idleTintOverlay);
 		log.debug("Jam's Arceuus Runecrafting started");
 	}
@@ -95,6 +100,7 @@ public class ZeahRcHelperPlugin extends Plugin
 		overlayManager.remove(nextClickOverlay);
 		overlayManager.remove(pathMinimapOverlay);
 		overlayManager.remove(statusOverlay);
+		overlayManager.remove(fragmentStackOverlay);
 		overlayManager.remove(idleTintOverlay);
 		rotationHelper.reset();
 		reminderService.reset();
