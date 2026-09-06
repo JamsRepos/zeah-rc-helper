@@ -78,11 +78,20 @@ public class RotationLogicTest
 	}
 
 	@Test
-	public void fullFragmentStackWithDarkGoesToAltar()
+	public void fullStackMidChiselKeepsChiselling()
+	{
+		// 4 frags/block: known Full after ~25 of 27, with dark still left.
+		assertEquals(RotationStep.CHISEL_AND_RETURN,
+			RotationLogic.infer(carrying(0, 2, RotationLogic.FULL_FRAGMENTS), false, false, false,
+				RotationStep.CHISEL_AND_RETURN));
+	}
+
+	@Test
+	public void secondLoadWithFullStackGoesToAltar()
 	{
 		assertEquals(RotationStep.GO_ALTAR,
 			RotationLogic.infer(carrying(0, 10, RotationLogic.FULL_FRAGMENTS), false, false, false,
-				RotationStep.CHISEL_AND_RETURN));
+				RotationStep.GO_DARK_SECOND));
 	}
 
 	@Test
@@ -101,6 +110,9 @@ public class RotationLogicTest
 			RotationLogic.infer(carrying(0, 10, 40), false, true, false, RotationStep.CHISEL_AND_RETURN));
 		assertEquals(RotationStep.GO_ALTAR,
 			RotationLogic.infer(carryingUnknown(0, 10, 1), false, true, false, RotationStep.CHISEL_AND_RETURN));
+		assertEquals(RotationStep.GO_ALTAR,
+			RotationLogic.infer(carrying(0, 2, RotationLogic.FULL_FRAGMENTS), false, true, false,
+				RotationStep.CHISEL_AND_RETURN));
 	}
 
 	/** Fragments are one stackable slot; blocks take one slot each. */

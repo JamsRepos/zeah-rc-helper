@@ -25,6 +25,8 @@ final class RotationLogic
 		boolean hasDense = inv.getDenseBlocks() > 0;
 		boolean inventoryFull = inv.getEmptySlots() == 0;
 		boolean fullFragmentStack = inv.isFragmentsKnown() && inv.getFragments() >= FULL_FRAGMENTS;
+		// Mid first-load chisel looks like the second load once the stack hits Full with dark left.
+		boolean chiselling = lastStep == RotationStep.CHISEL_AND_RETURN;
 
 		if (atAltar)
 		{
@@ -39,7 +41,7 @@ final class RotationLogic
 			return RotationStep.RETURN_TO_MINE;
 		}
 
-		if (hasFrags && hasDark && (fullFragmentStack || nearAltar))
+		if (hasFrags && hasDark && (nearAltar || (!chiselling && fullFragmentStack)))
 		{
 			return RotationStep.GO_ALTAR;
 		}
@@ -47,7 +49,7 @@ final class RotationLogic
 		{
 			return fullFragmentStack || hasFrags ? RotationStep.GO_DARK_SECOND : RotationStep.GO_DARK_FIRST;
 		}
-		if (hasDark && !fullFragmentStack)
+		if (hasDark && (chiselling || !fullFragmentStack))
 		{
 			return RotationStep.CHISEL_AND_RETURN;
 		}
