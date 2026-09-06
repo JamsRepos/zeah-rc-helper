@@ -24,7 +24,7 @@ final class RotationLogic
 		boolean hasDark = inv.getDarkBlocks() > 0;
 		boolean hasDense = inv.getDenseBlocks() > 0;
 		boolean inventoryFull = inv.getEmptySlots() == 0;
-		boolean fullFragmentStack = inv.getFragments() >= FULL_FRAGMENTS;
+		boolean fullFragmentStack = inv.isFragmentsKnown() && inv.getFragments() >= FULL_FRAGMENTS;
 
 		if (atAltar)
 		{
@@ -39,7 +39,7 @@ final class RotationLogic
 			return RotationStep.RETURN_TO_MINE;
 		}
 
-		if (hasFrags && hasDark && (inventoryFull || fullFragmentStack || nearAltar))
+		if (hasFrags && hasDark && (fullFragmentStack || nearAltar))
 		{
 			return RotationStep.GO_ALTAR;
 		}

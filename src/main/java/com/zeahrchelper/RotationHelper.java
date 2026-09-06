@@ -31,7 +31,8 @@ public class RotationHelper
 	private HelperAction currentAction = HelperAction.idle();
 
 	@Getter
-	private InventorySnapshot snapshot = new InventorySnapshot(0, 0, 0, 28, false, false, false, false, false, false, -1);
+	private InventorySnapshot snapshot = new InventorySnapshot(
+		0, 0, 0, 28, false, false, false, false, false, false, -1, true);
 
 	@Getter
 	private RcMode resolvedMode = RcMode.BLOOD;
@@ -229,10 +230,17 @@ public class RotationHelper
 				return null;
 			case CHISEL_AND_RETURN:
 			case RETURN_TO_MINE:
-				Player p = client.getLocalPlayer();
-				if (p != null && sceneTracker.isAtMine(p.getWorldLocation()) && step == RotationStep.CHISEL_AND_RETURN)
+				if (step == RotationStep.CHISEL_AND_RETURN)
 				{
-					return null;
+					Player p = client.getLocalPlayer();
+					TileObject stone = sceneTracker.chooseRunestone();
+					// Loose isAtMine includes the west-73 landing — only drop the target when
+					// actually next to a runestone.
+					if (p != null && stone != null
+						&& SceneTracker.distanceTo(stone, p.getWorldLocation()) <= 1)
+					{
+						return null;
+					}
 				}
 				return sceneTracker.chooseRunestone();
 			default:
@@ -254,8 +262,10 @@ public class RotationHelper
 		{
 			return destination.getWorldLocation();
 		}
-		if (sceneTracker.isAtMine(start) && (step == RotationStep.MINE_FIRST || step == RotationStep.MINE_SECOND
-			|| step == RotationStep.CHISEL_AND_RETURN || step == RotationStep.RETURN_TO_MINE))
+		// Only mining steps clear the path on loose isAtMine. Chisel/return must keep pathing
+		// after the west-73 landing (inside the mine radius but still short of the stones).
+		if (sceneTracker.isAtMine(start)
+			&& (step == RotationStep.MINE_FIRST || step == RotationStep.MINE_SECOND))
 		{
 			return null;
 		}

@@ -124,6 +124,15 @@ public class RcPathRouterTest
 	}
 
 	@Test
+	public void west73LandingIsInsideLooseMineRadius()
+	{
+		// Documents why chisel/return must not clear pathEnd on isAtMine alone: the scramble
+		// landing is within 10 tiles of the south runestone.
+		assertTrue(AgilityShortcut.WEST_73.getTo().distanceTo(ZeahRcArea.RUNESTONE_SOUTH) <= 10);
+		assertTrue(AgilityShortcut.WEST_73.getTo().distanceTo(ZeahRcArea.MINE_STAND) > 1);
+	}
+
+	@Test
 	public void bloodApproachStaysOnUntilNearAltar()
 	{
 		assertTrue(RcPathRouter.useBloodApproach(
