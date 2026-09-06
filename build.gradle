@@ -1,5 +1,6 @@
 plugins {
 	id 'java'
+	id 'checkstyle'
 }
 
 repositories {
@@ -13,7 +14,8 @@ repositories {
 	mavenCentral()
 }
 
-def runeLiteVersion = 'latest.release'
+// Override with -PruneLiteVersion=latest.integration to build against RuneLite snapshots.
+def runeLiteVersion = findProperty('runeLiteVersion') ?: 'latest.release'
 def pluginMainClass = 'com.zeahrchelper.ZeahRcHelperPluginTest'
 
 dependencies {
@@ -27,8 +29,18 @@ dependencies {
 	testImplementation group: 'net.runelite', name:'jshell', version: runeLiteVersion
 }
 
+// runelite-plugin.properties is the single source of the version; the Plugin Hub reads it raw.
+def pluginProperties = new Properties()
+file('runelite-plugin.properties').withInputStream { pluginProperties.load(it) }
+
 group = 'com.zeahrchelper'
-version = '1.0.4' // Keep Changelog.VERSION
+version = pluginProperties.getProperty('version')
+
+checkstyle {
+	toolVersion = '10.21.4'
+	configFile = file('config/checkstyle/checkstyle.xml')
+	maxWarnings = 0
+}
 
 tasks.withType(JavaCompile).configureEach {
 	options.encoding = 'UTF-8'

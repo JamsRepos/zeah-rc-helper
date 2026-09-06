@@ -10,7 +10,6 @@ import net.runelite.client.config.Range;
 public interface ZeahRcHelperConfig extends Config
 {
 	String GROUP = "zeah-rc-helper";
-	String SEEN_CHANGELOG_VERSION_KEY = "seenChangelogVersion";
 	String PATH_DISPLAY_KEY = "pathDisplay";
 	String PATH_PROVIDER_KEY = "pathProvider";
 	/** Replaced by {@link #PATH_DISPLAY_KEY}; still read once by {@link PathDisplayMigration}. */
@@ -176,16 +175,5 @@ public interface ZeahRcHelperConfig extends Config
 	default boolean idleFlash()
 	{
 		return false;
-	}
-
-	@ConfigItem(
-		keyName = SEEN_CHANGELOG_VERSION_KEY,
-		name = "Seen changelog version",
-		description = "Last Jam's Arceuus Runecrafting version whose update notes were shown in chat.",
-		hidden = true
-	)
-	default String seenChangelogVersion()
-	{
-		return "";
 	}
 }

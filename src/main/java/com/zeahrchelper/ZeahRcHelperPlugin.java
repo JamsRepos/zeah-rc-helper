@@ -21,7 +21,6 @@ import net.runelite.api.events.VarbitChanged;
 import net.runelite.api.events.WallObjectDespawned;
 import net.runelite.api.events.WallObjectSpawned;
 import net.runelite.api.gameval.VarbitID;
-import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
@@ -32,7 +31,7 @@ import net.runelite.client.ui.overlay.OverlayManager;
 @Slf4j
 @PluginDescriptor(
 	name = "Jam's Arceuus Runecrafting",
-	description = "Click-here helper for Arceuus blood and soul runecrafting, with lantern and blood essence reminders",
+	description = "Click-here helper for Arceuus blood and soul runecrafting, with gear and blood essence reminders",
 	tags = {"runecraft", "runecrafting", "blood", "soul", "arceuus", "zeah", "kourend", "skilling"},
 	conflicts = {"Easy Arceuus Runecrafting", "easy-arceuus-runecrafting"}
 )
@@ -66,16 +65,10 @@ public class ZeahRcHelperPlugin extends Plugin
 	private SceneTracker sceneTracker;
 
 	@Inject
-	private ChangelogService changelogService;
-
-	@Inject
 	private PathDisplayMigration pathDisplayMigration;
 
 	@Inject
 	private ShortestPathBridge shortestPathBridge;
-
-	@Inject
-	private ClientThread clientThread;
 
 	@Override
 	protected void startUp()
@@ -90,7 +83,6 @@ public class ZeahRcHelperPlugin extends Plugin
 		overlayManager.add(pathMinimapOverlay);
 		overlayManager.add(statusOverlay);
 		overlayManager.add(idleTintOverlay);
-		clientThread.invoke(changelogService::maybeAnnounce);
 		log.debug("Jam's Arceuus Runecrafting started");
 	}
 
@@ -104,7 +96,6 @@ public class ZeahRcHelperPlugin extends Plugin
 		rotationHelper.reset();
 		reminderService.reset();
 		sceneTracker.reset();
-		changelogService.reset();
 		shortestPathBridge.clear();
 	}
 
@@ -197,7 +188,6 @@ public class ZeahRcHelperPlugin extends Plugin
 	@Subscribe
 	public void onGameStateChanged(GameStateChanged event)
 	{
-		changelogService.onGameStateChanged(event);
 		if (event.getGameState() == GameState.LOADING)
 		{
 			sceneTracker.reset();

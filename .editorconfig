@@ -1,0 +1,30 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# RuneLite code conventions: tabs, braces on the next line (enforced by checkstyle)
+[*.{java,gradle}]
+indent_style = tab
+ij_java_class_brace_style = next_line
+ij_java_method_brace_style = next_line
+ij_java_block_brace_style = next_line
+
+[*.{yml,yaml}]
+indent_style = space
+indent_size = 2
+
+[*.md]
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = false
+
+[*.{sh,ps1}]
+indent_style = space
+indent_size = 4
+
+[*.properties]
+indent_style = space
