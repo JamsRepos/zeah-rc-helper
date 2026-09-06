@@ -85,6 +85,8 @@ public class InventoryChecker
 		boolean activeEssence = false;
 		boolean lanternInv = false;
 		int lanternId = -1;
+		int bloodRunes = 0;
+		int soulRunes = 0;
 
 		ItemContainer inventory = client.getItemContainer(InventoryID.INV);
 		if (inventory == null)
@@ -117,6 +119,14 @@ public class InventoryChecker
 				{
 					hasFragmentItem = true;
 					fragmentQty += qty;
+				}
+				else if (id == ItemID.BLOODRUNE)
+				{
+					bloodRunes += qty;
+				}
+				else if (id == ItemID.SOULRUNE)
+				{
+					soulRunes += qty;
 				}
 				else if (isChisel(id))
 				{
@@ -174,7 +184,10 @@ public class InventoryChecker
 			lanternEquipped,
 			lanternInv,
 			lanternId,
-			fragments.known);
+			fragments.known,
+			hasFragmentItem,
+			bloodRunes,
+			soulRunes);
 	}
 
 	private FragmentCount resolveFragmentCount(

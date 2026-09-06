@@ -18,4 +18,8 @@ public class InventorySnapshot
 	int lanternItemId;
 	/** False when a fragment stack is present but the count was not watched or Count-checked. */
 	boolean fragmentsKnown;
+	/** True when a dark essence fragment stack is in the inventory. */
+	boolean hasFragments;
+	int bloodRunes;
+	int soulRunes;
 }
