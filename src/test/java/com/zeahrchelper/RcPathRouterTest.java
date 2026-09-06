@@ -148,6 +148,23 @@ public class RcPathRouterTest
 	}
 
 	@Test
+	public void darkApproachUsedOnBloodDarkStepsUntilNearStandTile()
+	{
+		assertTrue(RcPathRouter.useDarkApproach(
+			RotationStep.GO_DARK_SECOND, ZeahRcArea.MINE_STAND, RcMode.BLOOD));
+		assertTrue(RcPathRouter.useDarkApproach(
+			RotationStep.GO_DARK_FIRST, ZeahRcArea.NORTH_SHORTCUT, RcMode.BLOOD));
+		assertFalse(RcPathRouter.useDarkApproach(
+			RotationStep.GO_DARK_SECOND, ZeahRcArea.DARK_APPROACH, RcMode.BLOOD));
+		assertFalse(RcPathRouter.useDarkApproach(
+			RotationStep.GO_DARK_SECOND, ZeahRcArea.DARK_ALTAR, RcMode.BLOOD));
+		assertFalse(RcPathRouter.useDarkApproach(
+			RotationStep.GO_DARK_SECOND, ZeahRcArea.MINE_STAND, RcMode.SOUL));
+		assertFalse(RcPathRouter.useDarkApproach(
+			RotationStep.GO_ALTAR, ZeahRcArea.MINE_STAND, RcMode.BLOOD));
+	}
+
+	@Test
 	public void chiselAndIdleHaveNoShortcutClick()
 	{
 		List<WorldPoint> path = Arrays.asList(

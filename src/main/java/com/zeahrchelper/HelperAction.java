@@ -16,9 +16,12 @@ public class HelperAction
 	TileObject highlightObject;
 	WorldPoint highlightTile;
 	Color color;
+	/** Short canvas label on the highlight (e.g. "Stand Here", "Click Here"). */
+	String worldHint;
 
 	public static HelperAction idle()
 	{
-		return new HelperAction(RotationStep.IDLE, "Waiting…", Collections.emptyList(), null, null, Color.GRAY);
+		return new HelperAction(
+			RotationStep.IDLE, "Waiting…", Collections.emptyList(), null, null, Color.GRAY, null);
 	}
 }
