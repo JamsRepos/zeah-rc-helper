@@ -18,8 +18,6 @@ This plugin conflicts with [Easy Arceuus Runecrafting](https://github.com/poi56i
 
 Bloods show in red and Souls in teal. Auto uses souls at 90 Runecraft, otherwise bloods.
 
-After an update, chat shows what changed the first time you log in.
-
 ## The rotation
 
 Same loop for bloods (77 Runecraft) and souls (90). Only the final altar changes.
