@@ -19,10 +19,12 @@ import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.GroundObjectDespawned;
 import net.runelite.api.events.GroundObjectSpawned;
+import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.events.VarbitChanged;
 import net.runelite.api.events.WallObjectDespawned;
 import net.runelite.api.events.WallObjectSpawned;
+import net.runelite.api.gameval.InventoryID;
 import net.runelite.api.gameval.ObjectID;
 import net.runelite.api.gameval.VarbitID;
 import net.runelite.client.config.ConfigManager;
@@ -208,6 +210,15 @@ public class ZeahRcHelperPlugin extends Plugin
 	}
 
 	@Subscribe
+	public void onItemContainerChanged(ItemContainerChanged event)
+	{
+		if (event.getContainerId() == InventoryID.INV)
+		{
+			rotationHelper.onInventoryChanged();
+		}
+	}
+
+	@Subscribe
 	public void onChatMessage(ChatMessage event)
 	{
 		reminderService.onChatMessage(event);
@@ -224,6 +235,7 @@ public class ZeahRcHelperPlugin extends Plugin
 		else if (event.getGameState() == GameState.LOGGED_IN)
 		{
 			sceneTracker.scanScene();
+			rotationHelper.reloadSessionTotals();
 		}
 		else if (event.getGameState() == GameState.LOGIN_SCREEN)
 		{

@@ -6,6 +6,7 @@ import com.zeahrchelper.RcMode;
 import com.zeahrchelper.ReminderService;
 import com.zeahrchelper.RotationHelper;
 import com.zeahrchelper.RotationStep;
+import com.zeahrchelper.StatsScope;
 import com.zeahrchelper.ZeahRcHelperConfig;
 import com.zeahrchelper.ZeahRcHelperPlugin;
 import java.awt.Color;
@@ -29,7 +30,7 @@ public class StatusOverlay extends OverlayPanel
 	private static final Color DETAIL = new Color(170, 170, 170);
 	private static final Color WARN = new Color(255, 168, 76);
 	private static final Color ESSENCE_OK = new Color(120, 200, 140);
-	private static final Dimension SIZE = new Dimension(166, 0);
+	private static final Dimension SIZE = new Dimension(200, 0);
 
 	private final ZeahRcHelperConfig config;
 	private final RotationHelper rotationHelper;
@@ -51,6 +52,8 @@ public class StatusOverlay extends OverlayPanel
 		panelComponent.setGap(new Point(0, 4));
 		panelComponent.setPreferredSize(SIZE);
 		addMenuEntry(MenuAction.RUNELITE_OVERLAY_CONFIG, OPTION_CONFIGURE, "Jam's Arceuus Runecrafting");
+		addMenuEntry(MenuAction.RUNELITE_OVERLAY, "Reset session & totals", "Jam's Arceuus Runecrafting",
+			e -> rotationHelper.resetAllCounters());
 	}
 
 	@Override
@@ -96,18 +99,12 @@ public class StatusOverlay extends OverlayPanel
 
 		if (inv != null)
 		{
-			panelComponent.getChildren().add(LineComponent.builder()
-				.left("Dense/Dark")
-				.leftColor(LABEL)
-				.right(inv.getDenseBlocks() + "/" + inv.getDarkBlocks())
-				.rightColor(LABEL)
-				.build());
-			panelComponent.getChildren().add(line("Trips", String.valueOf(rotationHelper.getTripsCompleted()), LABEL));
-
 			if (mode == RcMode.BLOOD && config.bloodEssenceReminder())
 			{
 				panelComponent.getChildren().add(line("Essence", essenceText(inv), essenceColor(inv)));
 			}
+
+			addStatsSection();
 		}
 
 		for (String warning : warnings)
@@ -119,6 +116,53 @@ public class StatusOverlay extends OverlayPanel
 		}
 
 		return super.render(graphics);
+	}
+
+	private void addStatsSection()
+	{
+		if (!config.showStats())
+		{
+			return;
+		}
+
+		StatsScope scope = config.statsScope();
+		boolean showTrips = config.showTrips();
+		boolean showRuneCounts = config.showRuneCounts();
+		if (!showTrips && !showRuneCounts)
+		{
+			return;
+		}
+
+		panelComponent.getChildren().add(LineComponent.builder().left("").build());
+		panelComponent.getChildren().add(LineComponent.builder()
+			.left("Stats (" + scope.panelSuffix() + ")")
+			.leftColor(LABEL)
+			.build());
+
+		if (showTrips)
+		{
+			panelComponent.getChildren().add(line(
+				"Trips",
+				scope.format(rotationHelper.getTripsCompleted(), rotationHelper.getTotalTrips()),
+				LABEL));
+		}
+		if (showRuneCounts)
+		{
+			if (rotationHelper.getResolvedMode() == RcMode.SOUL)
+			{
+				panelComponent.getChildren().add(line(
+					"Souls",
+					scope.format(rotationHelper.getSoulRunesCrafted(), rotationHelper.getTotalSoulRunes()),
+					LABEL));
+			}
+			else
+			{
+				panelComponent.getChildren().add(line(
+					"Bloods",
+					scope.format(rotationHelper.getBloodRunesCrafted(), rotationHelper.getTotalBloodRunes()),
+					LABEL));
+			}
+		}
 	}
 
 	private static LineComponent line(String left, String right, Color rightColor)

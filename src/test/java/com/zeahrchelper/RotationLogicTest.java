@@ -118,6 +118,7 @@ public class RotationLogicTest
 	{
 		int used = dense + dark + (fragments > 0 ? 1 : 0);
 		return new InventorySnapshot(
-			dense, dark, fragments, SLOTS - used, true, true, false, false, true, false, -1, fragmentsKnown);
+			dense, dark, fragments, SLOTS - used, true, true, false, false, true, false, -1, fragmentsKnown,
+			fragments > 0, 0, 0);
 	}
 }

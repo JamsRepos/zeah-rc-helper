@@ -11,9 +11,10 @@ This plugin conflicts with [Easy Arceuus Runecrafting](https://github.com/poi56i
 - **Blood altar from Dark Altar** — after the second venerate, a filled tile marked **Stand Here** appears south of the Dark Altar; stand on it, then **Click Here** on the Blood Altar. The status panel spells out the same step. Paths to the Dark Altar use that stand tile so the Blood Altar stays loaded.
 - **Fragment count** — the fragment stack in your inventory shows how many you have.
 - **Status panel** — what to do next, plus:
-  - **Dense/Dark** — uncharged and venerated block counts
-  - **Trips** — finished runs this session
   - **Essence** — blood essence status (bloods only; hidden if Blood essence reminder is off)
+  - **Stats** — optional section (blank line above) headed `Stats (Session/Total)` with Trips and Bloods or Souls (whichever you are crafting). Toggle the section, Trips, and rune counts in settings; Stat values chooses Session, Total, or Session/Total.
+
+Right-click the status panel for **Reset session & totals** if you need a clean slate.
 - **Reminders** — the same panel tells you if you are missing a chisel, pickaxe, lantern, or blood essence, or if you have stood still too long.
 
 Bloods show in red and Souls in teal. Auto uses souls at 90 Runecraft, otherwise bloods.
@@ -51,7 +52,10 @@ Everything is on by default except the idle screen tint.
 | Highlight next click | Outline on the next object |
 | Path display | Where the path is drawn: floor & minimap, floor only, minimap only, or off |
 | Path source | Plugin lines, or hand the destination to the [Shortest Path](https://runelite.net/plugin-hub/show/shortest-path) plugin coloured by the current step |
-| Show status panel | Step, counts, and reminders |
+| Show status panel | Step, essence, stats, and reminders |
+| Show stats | Trip and rune counters section on the panel |
+| Trips / Rune counts | Which rows appear in the stats section |
+| Stat values | Session, Total, or Session/Total |
 | Gear reminders | Warn if chisel, pickaxe, or lantern is missing |
 | Check lantern logs | Warn if the lantern is unlit or using logs that do not help this method |
 | Blood essence reminder | Warn to bring / activate essence, and when charges are low (bloods only) |

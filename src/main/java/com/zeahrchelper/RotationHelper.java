@@ -32,13 +32,13 @@ public class RotationHelper
 
 	@Getter
 	private InventorySnapshot snapshot = new InventorySnapshot(
-		0, 0, 0, 28, false, false, false, false, false, false, -1, true);
+		0, 0, 0, 28, false, false, false, false, false, false, -1, true, false, 0, 0);
 
 	@Getter
 	private RcMode resolvedMode = RcMode.BLOOD;
 
 	@Getter
-	private int tripsCompleted;
+	private final SessionStats sessionStats;
 
 	private RotationStep lastStep = RotationStep.IDLE;
 	/** True after the player clicks the Blood Altar during GO_ALTAR — hide Stand Here while walking. */
@@ -52,7 +52,8 @@ public class RotationHelper
 		ReminderService reminderService,
 		SceneTracker sceneTracker,
 		RcPathRouter pathRouter,
-		ShortestPathBridge shortestPathBridge)
+		ShortestPathBridge shortestPathBridge,
+		SessionStats sessionStats)
 	{
 		this.client = client;
 		this.config = config;
@@ -61,17 +62,71 @@ public class RotationHelper
 		this.sceneTracker = sceneTracker;
 		this.pathRouter = pathRouter;
 		this.shortestPathBridge = shortestPathBridge;
+		this.sessionStats = sessionStats;
 	}
 
 	public void reset()
 	{
 		currentAction = HelperAction.idle();
-		tripsCompleted = 0;
 		lastStep = RotationStep.IDLE;
 		bloodAltarClickCommitted = false;
+		sessionStats.clearBaselines();
 		pathRouter.reset();
 		shortestPathBridge.clear();
 		inventoryChecker.reset();
+	}
+
+	public int getTripsCompleted()
+	{
+		return sessionStats.getTripsCompleted();
+	}
+
+	public int getBloodRunesCrafted()
+	{
+		return sessionStats.getBloodRunesCrafted();
+	}
+
+	public int getSoulRunesCrafted()
+	{
+		return sessionStats.getSoulRunesCrafted();
+	}
+
+	public int getTotalTrips()
+	{
+		return sessionStats.getTotalTrips();
+	}
+
+	public int getTotalBloodRunes()
+	{
+		return sessionStats.getTotalBloodRunes();
+	}
+
+	public int getTotalSoulRunes()
+	{
+		return sessionStats.getTotalSoulRunes();
+	}
+
+	/** Re-read lifetime totals after login when the RS profile is available. */
+	public void reloadSessionTotals()
+	{
+		sessionStats.reloadTotalsFromProfile();
+	}
+
+	/** Zero session and lifetime trip/rune counters. */
+	public void resetAllCounters()
+	{
+		sessionStats.resetAllCounters();
+	}
+
+	/**
+	 * Inventory changed mid-tick (craft completes). Counts runes using fragment consumption
+	 * so we do not wait for the next game tick.
+	 */
+	public void onInventoryChanged()
+	{
+		snapshot = inventoryChecker.scan();
+		sessionStats.noteRuneInventory(
+			snapshot.getBloodRunes(), snapshot.getSoulRunes(), snapshot.isHasFragments());
 	}
 
 	/** Player clicked the Blood Altar — drop the stand-tile hint for the rest of this GO_ALTAR step. */
@@ -91,6 +146,10 @@ public class RotationHelper
 			bloodAltarClickCommitted = false;
 			pathRouter.reset();
 			shortestPathBridge.clear();
+			snapshot = inventoryChecker.scan();
+			sessionStats.noteRuneInventory(
+				snapshot.getBloodRunes(), snapshot.getSoulRunes(), snapshot.isHasFragments());
+			sessionStats.onGameTick();
 			reminderService.update(snapshot, resolvedMode, false);
 			return;
 		}
@@ -104,6 +163,9 @@ public class RotationHelper
 			currentAction = HelperAction.idle();
 			pathRouter.reset();
 			shortestPathBridge.clear();
+			sessionStats.noteRuneInventory(
+				snapshot.getBloodRunes(), snapshot.getSoulRunes(), snapshot.isHasFragments());
+			sessionStats.onGameTick();
 			return;
 		}
 
@@ -116,8 +178,11 @@ public class RotationHelper
 		RotationStep step = RotationLogic.infer(snapshot, atAltar, nearAltar, atMine, lastStep);
 		if (RotationLogic.isTripCompleteTransition(lastStep, step))
 		{
-			tripsCompleted++;
+			sessionStats.noteTripComplete();
 		}
+		sessionStats.noteRuneInventory(
+			snapshot.getBloodRunes(), snapshot.getSoulRunes(), snapshot.isHasFragments());
+		sessionStats.onGameTick();
 		if (step != RotationStep.GO_ALTAR)
 		{
 			bloodAltarClickCommitted = false;

@@ -25,9 +25,16 @@ public interface ZeahRcHelperConfig extends Config
 	String helperSection = "helper";
 
 	@ConfigSection(
+		name = "Stats",
+		description = "Trip and rune counters on the status panel",
+		position = 1
+	)
+	String statsSection = "stats";
+
+	@ConfigSection(
 		name = "Reminders",
 		description = "Gear, blood essence, and idle warnings",
-		position = 1
+		position = 2
 	)
 	String reminderSection = "reminders";
 
@@ -101,6 +108,54 @@ public interface ZeahRcHelperConfig extends Config
 	default boolean showStatusPanel()
 	{
 		return true;
+	}
+
+	@ConfigItem(
+		keyName = "showStats",
+		name = "Show stats",
+		description = "Trip and rune counters as their own section on the status panel",
+		section = statsSection,
+		position = 0
+	)
+	default boolean showStats()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "showTrips",
+		name = "Trips",
+		description = "Show finished-run trip counts in the stats section",
+		section = statsSection,
+		position = 1
+	)
+	default boolean showTrips()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "showRuneCounts",
+		name = "Rune counts",
+		description = "Show blood or soul craft counts for the current rune type in the stats section",
+		section = statsSection,
+		position = 2
+	)
+	default boolean showRuneCounts()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "statsScope",
+		name = "Stat values",
+		description = "Session = this client session. Total = all-time. Session/Total shows both.",
+		section = statsSection,
+		position = 3
+	)
+	default StatsScope statsScope()
+	{
+		return StatsScope.SESSION_AND_TOTAL;
 	}
 
 	@ConfigItem(
