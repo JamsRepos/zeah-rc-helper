@@ -8,6 +8,7 @@ import com.zeahrchelper.overlay.StatusOverlay;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.GameState;
+import net.runelite.api.MenuAction;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.DecorativeObjectDespawned;
 import net.runelite.api.events.DecorativeObjectSpawned;
@@ -17,9 +18,11 @@ import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.GroundObjectDespawned;
 import net.runelite.api.events.GroundObjectSpawned;
+import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.events.VarbitChanged;
 import net.runelite.api.events.WallObjectDespawned;
 import net.runelite.api.events.WallObjectSpawned;
+import net.runelite.api.gameval.ObjectID;
 import net.runelite.api.gameval.VarbitID;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
@@ -118,6 +121,26 @@ public class ZeahRcHelperPlugin extends Plugin
 	public void onGameTick(GameTick tick)
 	{
 		rotationHelper.update();
+	}
+
+	@Subscribe
+	public void onMenuOptionClicked(MenuOptionClicked event)
+	{
+		if (event.getId() != ObjectID.ARCHEUS_ALTAR_BLOOD)
+		{
+			return;
+		}
+		MenuAction action = event.getMenuAction();
+		if (action == MenuAction.GAME_OBJECT_FIRST_OPTION
+			|| action == MenuAction.GAME_OBJECT_SECOND_OPTION
+			|| action == MenuAction.GAME_OBJECT_THIRD_OPTION
+			|| action == MenuAction.GAME_OBJECT_FOURTH_OPTION
+			|| action == MenuAction.GAME_OBJECT_FIFTH_OPTION
+			|| action == MenuAction.WIDGET_TARGET_ON_GAME_OBJECT)
+		{
+			rotationHelper.onBloodAltarClicked();
+			rotationHelper.update();
+		}
 	}
 
 	@Subscribe

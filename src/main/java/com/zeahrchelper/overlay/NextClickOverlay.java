@@ -23,6 +23,7 @@ import net.runelite.api.TileObject;
 import net.runelite.api.WorldView;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldPoint;
+import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPosition;
@@ -33,6 +34,7 @@ public class NextClickOverlay extends Overlay
 	private static final int PULSE_MS = 1200;
 	private static final Stroke PATH_OUTLINE = new BasicStroke(5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
 	private static final Stroke PATH_LINE = new BasicStroke(2.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
+	private static final Stroke MARKER_OUTLINE = new BasicStroke(2.5f);
 
 	private final Client client;
 	private final ZeahRcHelperConfig config;
@@ -69,13 +71,14 @@ public class NextClickOverlay extends Overlay
 		}
 		if (config.highlightNextClick())
 		{
+			String hint = action.getWorldHint();
 			if (action.getHighlightObject() != null)
 			{
-				renderObject(graphics, action.getHighlightObject(), pulse(base));
+				renderObject(graphics, action.getHighlightObject(), pulse(base), hint, base);
 			}
 			else
 			{
-				renderTile(graphics, action.getHighlightTile(), pulse(base));
+				renderTile(graphics, action.getHighlightTile(), base, hint);
 			}
 		}
 		return null;
@@ -173,7 +176,7 @@ public class NextClickOverlay extends Overlay
 			oldHint != null ? oldHint : RenderingHints.VALUE_ANTIALIAS_OFF);
 	}
 
-	private void renderTile(Graphics2D graphics, WorldPoint tile, Color color)
+	private void renderTile(Graphics2D graphics, WorldPoint tile, Color color, String hint)
 	{
 		if (tile == null)
 		{
@@ -190,37 +193,92 @@ public class NextClickOverlay extends Overlay
 			return;
 		}
 		Polygon poly = Perspective.getCanvasTilePoly(client, local);
-		if (poly != null)
+		if (poly == null)
 		{
-			OverlayUtil.renderPolygon(graphics, poly, color);
+			return;
 		}
+
+		if (hint != null)
+		{
+			renderFilledMarker(graphics, poly, color);
+			renderHint(graphics, local, worldView.getPlane(), hint, color);
+			return;
+		}
+
+		OverlayUtil.renderPolygon(graphics, poly, pulse(color));
 	}
 
-	private void renderObject(Graphics2D graphics, TileObject object, Color color)
+	private void renderObject(Graphics2D graphics, TileObject object, Color color, String hint, Color hintColor)
 	{
 		if (object == null)
 		{
 			return;
 		}
 
-		Shape clickbox = object.getClickbox();
+		Shape clickbox = null;
+		try
+		{
+			clickbox = object.getClickbox();
+		}
+		catch (NullPointerException ignored)
+		{
+			// Stale object after a scene reload: model is gone; fall back to the tile.
+		}
 		if (clickbox != null)
 		{
 			Point mouse = client.getMouseCanvasPosition();
 			OverlayUtil.renderHoverableArea(graphics, clickbox, mouse, color, color, color);
-			return;
+		}
+		else
+		{
+			LocalPoint local = object.getLocalLocation();
+			if (local != null)
+			{
+				Polygon poly = Perspective.getCanvasTilePoly(client, local);
+				if (poly != null)
+				{
+					OverlayUtil.renderPolygon(graphics, poly, color);
+				}
+			}
 		}
 
-		LocalPoint local = object.getLocalLocation();
-		if (local == null)
+		if (hint != null)
+		{
+			LocalPoint local = object.getLocalLocation();
+			WorldView worldView = client.getTopLevelWorldView();
+			if (local != null && worldView != null)
+			{
+				renderHint(graphics, local, worldView.getPlane(), hint, hintColor);
+			}
+		}
+	}
+
+	private void renderFilledMarker(Graphics2D graphics, Polygon poly, Color color)
+	{
+		Stroke oldStroke = graphics.getStroke();
+		Object oldHint = graphics.getRenderingHint(RenderingHints.KEY_ANTIALIASING);
+		graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		graphics.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), 90));
+		graphics.fillPolygon(poly);
+		graphics.setStroke(MARKER_OUTLINE);
+		graphics.setColor(new Color(0, 0, 0, 200));
+		graphics.draw(poly);
+		graphics.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), 230));
+		graphics.draw(poly);
+		graphics.setStroke(oldStroke);
+		graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+			oldHint != null ? oldHint : RenderingHints.VALUE_ANTIALIAS_OFF);
+	}
+
+	private void renderHint(Graphics2D graphics, LocalPoint local, int plane, String hint, Color color)
+	{
+		Point text = Perspective.getCanvasTextLocation(client, graphics, local, hint, 0);
+		if (text == null)
 		{
 			return;
 		}
-		Polygon poly = Perspective.getCanvasTilePoly(client, local);
-		if (poly != null)
-		{
-			OverlayUtil.renderPolygon(graphics, poly, color);
-		}
+		graphics.setFont(FontManager.getRunescapeBoldFont());
+		OverlayUtil.renderTextLocation(graphics, text, hint, color);
 	}
 
 	private static Color pulse(Color base)

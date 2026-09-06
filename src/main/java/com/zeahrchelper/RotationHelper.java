@@ -15,7 +15,6 @@ import net.runelite.api.coords.WorldPoint;
 @Singleton
 public class RotationHelper
 {
-	private static final int FULL_FRAGMENTS = 100;
 	private static final int SOUL_LEVEL = 90;
 	private static final int AT_ALTAR_TILES = 12;
 	private static final int NEAR_ALTAR_TILES = 24;
@@ -41,6 +40,8 @@ public class RotationHelper
 	private int tripsCompleted;
 
 	private RotationStep lastStep = RotationStep.IDLE;
+	/** True after the player clicks the Blood Altar during GO_ALTAR — hide Stand Here while walking. */
+	private boolean bloodAltarClickCommitted;
 
 	@Inject
 	RotationHelper(
@@ -66,9 +67,19 @@ public class RotationHelper
 		currentAction = HelperAction.idle();
 		tripsCompleted = 0;
 		lastStep = RotationStep.IDLE;
+		bloodAltarClickCommitted = false;
 		pathRouter.reset();
 		shortestPathBridge.clear();
 		inventoryChecker.reset();
+	}
+
+	/** Player clicked the Blood Altar — drop the stand-tile hint for the rest of this GO_ALTAR step. */
+	public void onBloodAltarClicked()
+	{
+		if (lastStep == RotationStep.GO_ALTAR && resolvedMode == RcMode.BLOOD)
+		{
+			bloodAltarClickCommitted = true;
+		}
 	}
 
 	public void update()
@@ -76,6 +87,7 @@ public class RotationHelper
 		if (!ZeahRcArea.isInArceuusRc(client))
 		{
 			currentAction = HelperAction.idle();
+			bloodAltarClickCommitted = false;
 			pathRouter.reset();
 			shortestPathBridge.clear();
 			reminderService.update(snapshot, resolvedMode, false);
@@ -94,18 +106,32 @@ public class RotationHelper
 			return;
 		}
 
-		RotationStep step = inferStep(snapshot);
-		if (isTripCompleteTransition(lastStep, step))
-		{
-			tripsCompleted++;
-		}
-		lastStep = step;
-
+		boolean atAltar = sceneTracker.isNearAltar(resolvedMode, AT_ALTAR_TILES);
+		boolean nearAltar = atAltar || sceneTracker.isNearAltar(resolvedMode, NEAR_ALTAR_TILES);
 		Player player = client.getLocalPlayer();
 		WorldPoint start = player == null ? null : player.getWorldLocation();
 		boolean atMine = start != null && sceneTracker.isAtMine(start);
-		TileObject destination = destinationObject(step);
-		WorldPoint end = pathEnd(destination, step, start);
+
+		RotationStep step = RotationLogic.infer(snapshot, atAltar, nearAltar, atMine, lastStep);
+		if (RotationLogic.isTripCompleteTransition(lastStep, step))
+		{
+			tripsCompleted++;
+		}
+		if (step != RotationStep.GO_ALTAR)
+		{
+			bloodAltarClickCommitted = false;
+		}
+		lastStep = step;
+
+		BloodAltarReach.State altarReach = BloodAltarReach.evaluate(
+			step,
+			resolvedMode,
+			start,
+			sceneTracker.isBloodAltarInScene(),
+			bloodAltarClickCommitted);
+
+		TileObject destination = destinationObject(step, altarReach);
+		WorldPoint end = pathEnd(destination, step, start, altarReach);
 		WorldView worldView = client.getTopLevelWorldView();
 		int agility = client.getRealSkillLevel(Skill.AGILITY);
 		Color color = colorFor(step);
@@ -118,24 +144,45 @@ public class RotationHelper
 			agility,
 			resolvedMode,
 			atMine,
-			ownPath);
-		RcPathRouter.ClickTarget click = pathRouter.nextClick(step, destination, path, start, atMine);
-		shortestPathBridge.update(shortestPathTarget(end, step), color);
+			ownPath,
+			resolvedMode == RcMode.BLOOD);
+		RcPathRouter.ClickTarget click = nextClick(step, destination, path, start, atMine, altarReach);
+		shortestPathBridge.update(shortestPathTarget(end, step, altarReach), color);
 		currentAction = new HelperAction(
 			step,
-			detailFor(step, snapshot),
+			detailFor(step, altarReach),
 			path,
 			click.getObject(),
 			click.getTile(),
-			color);
+			color,
+			worldHintFor(altarReach));
+	}
+
+	private RcPathRouter.ClickTarget nextClick(
+		RotationStep step,
+		TileObject destination,
+		List<WorldPoint> path,
+		WorldPoint start,
+		boolean atMine,
+		BloodAltarReach.State altarReach)
+	{
+		if (altarReach == BloodAltarReach.State.STAND_THEN_CLICK)
+		{
+			return RcPathRouter.ClickTarget.of(null, ZeahRcArea.DARK_APPROACH);
+		}
+		return pathRouter.nextClick(step, destination, path, start, atMine);
 	}
 
 	/**
 	 * Shortest Path targets must be walkable. Object SW tiles (runestones, altars) are often
 	 * collision-blocked, which makes SP report "Destination could not be reached".
 	 */
-	private WorldPoint shortestPathTarget(WorldPoint end, RotationStep step)
+	private WorldPoint shortestPathTarget(WorldPoint end, RotationStep step, BloodAltarReach.State altarReach)
 	{
+		if (altarReach == BloodAltarReach.State.STAND_THEN_CLICK)
+		{
+			return ZeahRcArea.DARK_APPROACH;
+		}
 		if (end == null)
 		{
 			return null;
@@ -160,8 +207,12 @@ public class RotationHelper
 		}
 	}
 
-	private TileObject destinationObject(RotationStep step)
+	private TileObject destinationObject(RotationStep step, BloodAltarReach.State altarReach)
 	{
+		if (altarReach == BloodAltarReach.State.STAND_THEN_CLICK)
+		{
+			return null;
+		}
 		switch (step)
 		{
 			case MINE_FIRST:
@@ -189,8 +240,16 @@ public class RotationHelper
 		}
 	}
 
-	private WorldPoint pathEnd(TileObject destination, RotationStep step, WorldPoint start)
+	private WorldPoint pathEnd(
+		TileObject destination,
+		RotationStep step,
+		WorldPoint start,
+		BloodAltarReach.State altarReach)
 	{
+		if (altarReach == BloodAltarReach.State.STAND_THEN_CLICK)
+		{
+			return ZeahRcArea.DARK_APPROACH;
+		}
 		if (destination != null)
 		{
 			return destination.getWorldLocation();
@@ -247,62 +306,29 @@ public class RotationHelper
 		return client.getRealSkillLevel(Skill.RUNECRAFT) >= SOUL_LEVEL ? RcMode.SOUL : RcMode.BLOOD;
 	}
 
-	private RotationStep inferStep(InventorySnapshot inv)
+	private static String worldHintFor(BloodAltarReach.State altarReach)
 	{
-		boolean atAltar = sceneTracker.isNearAltar(resolvedMode, AT_ALTAR_TILES);
-		boolean nearAltar = atAltar || sceneTracker.isNearAltar(resolvedMode, NEAR_ALTAR_TILES);
-		Player player = client.getLocalPlayer();
-		boolean atMine = player != null && sceneTracker.isAtMine(player.getWorldLocation());
-		boolean hasFrags = inv.getFragments() > 0;
-		boolean hasDark = inv.getDarkBlocks() > 0;
-		boolean hasDense = inv.getDenseBlocks() > 0;
-		boolean inventoryFull = inv.getEmptySlots() == 0;
-		boolean fullFragmentStack = inv.getFragments() >= FULL_FRAGMENTS;
-
-		if (atAltar)
+		if (altarReach == BloodAltarReach.State.STAND_THEN_CLICK)
 		{
-			if (hasFrags)
-			{
-				return RotationStep.CRAFT_FRAGMENTS;
-			}
-			if (hasDark)
-			{
-				return RotationStep.CHISEL_AT_ALTAR;
-			}
-			return RotationStep.RETURN_TO_MINE;
+			return "Stand Here";
 		}
-
-		if (hasFrags && hasDark && (inventoryFull || fullFragmentStack || nearAltar))
+		if (altarReach == BloodAltarReach.State.READY)
 		{
-			return RotationStep.GO_ALTAR;
+			return "Click Here";
 		}
-		if (hasDense && inventoryFull)
-		{
-			return fullFragmentStack || hasFrags ? RotationStep.GO_DARK_SECOND : RotationStep.GO_DARK_FIRST;
-		}
-		if (hasDark && !fullFragmentStack)
-		{
-			return RotationStep.CHISEL_AND_RETURN;
-		}
-		if (hasFrags && !hasDark && !hasDense)
-		{
-			return atMine ? RotationStep.MINE_SECOND : RotationStep.RETURN_TO_MINE;
-		}
-		if (!atMine && hasDense && !fullFragmentStack)
-		{
-			return RotationStep.GO_DARK_FIRST;
-		}
-		return RotationStep.MINE_FIRST;
+		return null;
 	}
 
-	private static boolean isTripCompleteTransition(RotationStep from, RotationStep to)
+	private String detailFor(RotationStep step, BloodAltarReach.State altarReach)
 	{
-		return (from == RotationStep.CRAFT_REMAINING || from == RotationStep.RETURN_TO_MINE)
-			&& to == RotationStep.MINE_FIRST;
-	}
-
-	private String detailFor(RotationStep step, InventorySnapshot inv)
-	{
+		if (altarReach == BloodAltarReach.State.STAND_THEN_CLICK)
+		{
+			return "Stand Here, then click the Blood Altar";
+		}
+		if (altarReach == BloodAltarReach.State.READY)
+		{
+			return "Click the Blood Altar";
+		}
 		String rune = resolvedMode == RcMode.SOUL ? "soul" : "blood";
 		switch (step)
 		{

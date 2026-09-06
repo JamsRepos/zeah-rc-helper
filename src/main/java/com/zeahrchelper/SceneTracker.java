@@ -214,6 +214,18 @@ public class SceneTracker
 		return loc.distanceTo(fallback) <= tiles;
 	}
 
+	/** True when the Blood Altar's tile lies inside the base 104x104 scene (not the extended band). */
+	public boolean isBloodAltarInScene()
+	{
+		WorldView wv = client.getTopLevelWorldView();
+		if (wv == null)
+		{
+			return false;
+		}
+		WorldPoint p = ZeahRcArea.BLOOD_ALTAR;
+		return WorldPoint.isInScene(wv, p.getX(), p.getY());
+	}
+
 	public TileObject objectForShortcutId(int id)
 	{
 		if (id == ObjectID.ARCHEUUS_RUNESTONE_SHORTCUT_BOULDER)

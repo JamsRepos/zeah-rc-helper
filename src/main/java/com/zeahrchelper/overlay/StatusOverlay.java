@@ -16,6 +16,7 @@ import java.awt.Rectangle;
 import java.util.List;
 import javax.inject.Inject;
 import net.runelite.api.MenuAction;
+import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.overlay.OverlayPanel;
 import net.runelite.client.ui.overlay.OverlayPosition;
 import net.runelite.client.ui.overlay.components.LineComponent;
@@ -25,9 +26,10 @@ import static net.runelite.client.ui.overlay.OverlayManager.OPTION_CONFIGURE;
 public class StatusOverlay extends OverlayPanel
 {
 	private static final Color LABEL = Color.WHITE;
+	private static final Color DETAIL = new Color(170, 170, 170);
 	private static final Color WARN = new Color(255, 168, 76);
 	private static final Color ESSENCE_OK = new Color(120, 200, 140);
-	private static final Dimension SIZE = new Dimension(156, 0);
+	private static final Dimension SIZE = new Dimension(200, 0);
 
 	private final ZeahRcHelperConfig config;
 	private final RotationHelper rotationHelper;
@@ -81,6 +83,15 @@ public class StatusOverlay extends OverlayPanel
 		{
 			Color stepColor = action.getColor() != null ? action.getColor() : Color.WHITE;
 			panelComponent.getChildren().add(line("Next", action.getStep().getLabel(), stepColor));
+			String detail = action.getDetail();
+			if (detail != null && !detail.isEmpty())
+			{
+				panelComponent.getChildren().add(LineComponent.builder()
+					.left(detail)
+					.leftColor(DETAIL)
+					.leftFont(FontManager.getRunescapeSmallFont())
+					.build());
+			}
 		}
 
 		if (inv != null)
@@ -90,7 +101,7 @@ public class StatusOverlay extends OverlayPanel
 			panelComponent.getChildren().add(line("Fragments", String.valueOf(inv.getFragments()), LABEL));
 			panelComponent.getChildren().add(line("Trips", String.valueOf(rotationHelper.getTripsCompleted()), LABEL));
 
-			if (mode == RcMode.BLOOD)
+			if (mode == RcMode.BLOOD && config.bloodEssenceReminder())
 			{
 				panelComponent.getChildren().add(line("Essence", essenceText(inv), essenceColor(inv)));
 			}
@@ -130,9 +141,9 @@ public class StatusOverlay extends OverlayPanel
 		}
 		if (inv.isHasInactiveBloodEssence())
 		{
-			return config.bloodEssenceReminder() ? "activate" : "inactive";
+			return "activate";
 		}
-		return config.bloodEssenceReminder() ? "need one" : "none";
+		return "need one";
 	}
 
 	private Color essenceColor(InventorySnapshot inv)
@@ -140,14 +151,12 @@ public class StatusOverlay extends OverlayPanel
 		if (inv.isHasActiveBloodEssence())
 		{
 			Integer charges = reminderService.getBloodEssenceCharges();
-			if (config.bloodEssenceReminder()
-				&& charges != null
-				&& charges <= config.bloodEssenceLowCharges())
+			if (charges != null && charges <= config.bloodEssenceLowCharges())
 			{
 				return WARN;
 			}
 			return ESSENCE_OK;
 		}
-		return config.bloodEssenceReminder() ? WARN : LABEL;
+		return WARN;
 	}
 }
