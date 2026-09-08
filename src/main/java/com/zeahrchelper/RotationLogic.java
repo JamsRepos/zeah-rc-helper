@@ -20,6 +20,22 @@ final class RotationLogic
 		boolean atMine,
 		RotationStep lastStep)
 	{
+		return infer(inv, atAltar, nearAltar, atMine, lastStep, false);
+	}
+
+	/**
+	 * @param secondLoadReached True once the Second Load's mining/veneration has already
+	 * started this Trip - there is no Third Load, so finishing this Load's Dark Blocks with
+	 * nothing left to mine means craft, not another mining pass.
+	 */
+	static RotationStep infer(
+		InventorySnapshot inv,
+		boolean atAltar,
+		boolean nearAltar,
+		boolean atMine,
+		RotationStep lastStep,
+		boolean secondLoadReached)
+	{
 		boolean hasFrags = inv.getFragments() > 0;
 		boolean hasDark = inv.getDarkBlocks() > 0;
 		boolean hasDense = inv.getDenseBlocks() > 0;
@@ -27,6 +43,12 @@ final class RotationLogic
 		boolean fullFragmentStack = inv.isFragmentsKnown() && inv.getFragments() >= FULL_FRAGMENTS;
 		// Mid first-load chisel looks like the second load once the stack hits Full with dark left.
 		boolean chiselling = lastStep == RotationStep.CHISEL_AND_RETURN;
+		// A fresh Check confirming Full is a deliberate signal, unlike Full inferred from this run's
+		// own chiselling - let it break the keep-chiselling veto instead of waiting on nearAltar.
+		// Only once the Second Load is reached, though: on the First Load, Full must not skip
+		// mining the Second Load entirely - a Trip is always both Loads.
+		boolean checkOverride = secondLoadReached && inv.isFragmentsCheckConfirmed() && fullFragmentStack;
+		boolean chisellingVeto = chiselling && !checkOverride;
 
 		if (atAltar)
 		{
@@ -41,7 +63,7 @@ final class RotationLogic
 			return RotationStep.RETURN_TO_MINE;
 		}
 
-		if (hasFrags && hasDark && (nearAltar || (!chiselling && fullFragmentStack)))
+		if (hasFrags && hasDark && (nearAltar || (!chisellingVeto && fullFragmentStack)))
 		{
 			return RotationStep.GO_ALTAR;
 		}
@@ -49,12 +71,17 @@ final class RotationLogic
 		{
 			return fullFragmentStack || hasFrags ? RotationStep.GO_DARK_SECOND : RotationStep.GO_DARK_FIRST;
 		}
-		if (hasDark && (chiselling || !fullFragmentStack))
+		if (hasDark && (chisellingVeto || !fullFragmentStack))
 		{
 			return RotationStep.CHISEL_AND_RETURN;
 		}
 		if (hasFrags && !hasDark && !hasDense)
 		{
+			if (secondLoadReached)
+			{
+				// Both Loads are fully chiselled with nothing left to mine - go craft.
+				return RotationStep.GO_ALTAR;
+			}
 			return atMine ? RotationStep.MINE_SECOND : RotationStep.RETURN_TO_MINE;
 		}
 		if (!atMine && hasDense && !fullFragmentStack)
