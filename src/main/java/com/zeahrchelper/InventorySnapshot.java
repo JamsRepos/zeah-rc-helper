@@ -22,4 +22,6 @@ public class InventorySnapshot
 	boolean hasFragments;
 	int bloodRunes;
 	int soulRunes;
+	/** True once an explicit Check has confirmed the current fragment count this trip. */
+	boolean fragmentsCheckConfirmed;
 }

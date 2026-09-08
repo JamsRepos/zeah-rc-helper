@@ -110,6 +110,11 @@ public class ReminderService
 		updateIdle();
 		syncBloodEssenceCharges(inv);
 
+		if (inv.isHasFragments() && !inv.isFragmentsKnown())
+		{
+			warnings.add("Check your fragments - count unknown");
+		}
+
 		if (config.lanternReminder())
 		{
 			addGearWarnings(inv, mode);
