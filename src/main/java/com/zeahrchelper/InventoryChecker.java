@@ -223,6 +223,7 @@ public class InventoryChecker
 			trackedFragments = Math.min(MAX_FRAGMENTS, visible);
 			fragmentsKnown = true;
 			baselineConfirmed = true;
+			checkConfirmed = true;
 		}
 		// Without a confirmed baseline (e.g. a "?" stack already held at login/relog), a dark-block
 		// drop could just be catching up on fragments this session never saw gained - stay unknown
@@ -234,6 +235,10 @@ public class InventoryChecker
 				? Math.min(MAX_FRAGMENTS, trackedFragments + gained)
 				: gained;
 			fragmentsKnown = true;
+			// This count is built on inference again, not a fresh confirmation - a stale
+			// checkConfirmed here would let a Check of a non-full stack, followed by enough
+			// chiselling to cross Full on its own, wrongly break the keep-chiselling veto.
+			checkConfirmed = false;
 		}
 		else if (!fragmentsKnown)
 		{
