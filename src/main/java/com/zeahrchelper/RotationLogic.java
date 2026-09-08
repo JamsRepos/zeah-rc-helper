@@ -86,9 +86,9 @@ final class RotationLogic
 		}
 		if (!atMine && hasDense && !fullFragmentStack)
 		{
-			return RotationStep.GO_DARK_FIRST;
+			return hasFrags ? RotationStep.GO_DARK_SECOND : RotationStep.GO_DARK_FIRST;
 		}
-		return RotationStep.MINE_FIRST;
+		return hasFrags ? RotationStep.MINE_SECOND : RotationStep.MINE_FIRST;
 	}
 
 	/** The second batch follows chiselling at the altar; it stays until the player leaves. */

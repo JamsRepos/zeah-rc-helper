@@ -86,6 +86,16 @@ public class RotationLogicTest
 	}
 
 	@Test
+	public void miningPartWayThroughTheSecondLoadStillSaysSecond()
+	{
+		// Held Fragments prove this mining pass is the Second Load, same signal already used to
+		// pick GO_DARK_SECOND once the inventory fills - "Mine" must agree with "Venerate"
+		// instead of falling back to the First Load's label mid-pass.
+		assertEquals(RotationStep.MINE_SECOND,
+			RotationLogic.infer(carrying(5, 0, 104), false, false, true, RotationStep.MINE_SECOND, false));
+	}
+
+	@Test
 	public void finishingSecondLoadWithNothingLeftGoesToAltar()
 	{
 		// There is no Third Load - nothing left to mine means go craft, not "Mine again".
