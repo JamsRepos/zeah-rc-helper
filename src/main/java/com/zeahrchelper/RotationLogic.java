@@ -24,9 +24,9 @@ final class RotationLogic
 	}
 
 	/**
-	 * @param secondLoadReached True once the Second Load's mining/veneration has already
-	 * started this Trip - there is no Third Load, so finishing this Load's Dark Blocks with
-	 * nothing left to mine means craft, not another mining pass.
+	 * @param secondLoadReached True once the Second Load has actually been mined this Trip -
+	 * there is no Third Load, so finishing this Load's Dark Blocks with nothing left to mine
+	 * means craft, not another mining pass.
 	 */
 	static RotationStep infer(
 		InventorySnapshot inv,
@@ -101,5 +101,17 @@ final class RotationLogic
 	{
 		return (from == RotationStep.CRAFT_REMAINING || from == RotationStep.RETURN_TO_MINE)
 			&& to == RotationStep.MINE_FIRST;
+	}
+
+	/**
+	 * True once inferring this step proves the Second Load has actually been mined, not merely
+	 * prompted. MINE_SECOND is just the "go mine now" instruction shown while still empty-handed -
+	 * treating it as reached would flip secondLoadReached before any mining happens, making the
+	 * very next tick's identical empty-handed state (still no Dense/Dark, just Fragments) misread
+	 * as the Second Load already being finished too (GitHub issue #9).
+	 */
+	static boolean marksSecondLoadReached(RotationStep step)
+	{
+		return step == RotationStep.GO_DARK_SECOND;
 	}
 }

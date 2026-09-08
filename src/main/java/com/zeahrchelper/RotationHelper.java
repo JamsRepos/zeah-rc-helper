@@ -45,7 +45,7 @@ public class RotationHelper
 	private RotationStep lastStep = RotationStep.IDLE;
 	/** True after the player clicks the Blood Altar during GO_ALTAR — hide Stand Here while walking. */
 	private boolean bloodAltarClickCommitted;
-	/** True once the Second Load's mining/veneration has started this Trip - there is no Third Load. */
+	/** True once the Second Load has actually been mined this Trip - there is no Third Load. */
 	private boolean secondLoadReached;
 
 	@Inject
@@ -186,7 +186,7 @@ public class RotationHelper
 			sessionStats.noteTripComplete();
 			secondLoadReached = false;
 		}
-		if (step == RotationStep.MINE_SECOND || step == RotationStep.GO_DARK_SECOND)
+		if (RotationLogic.marksSecondLoadReached(step))
 		{
 			secondLoadReached = true;
 		}
