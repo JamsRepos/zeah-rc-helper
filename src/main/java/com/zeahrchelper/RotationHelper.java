@@ -5,6 +5,7 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.Player;
 import net.runelite.api.Skill;
@@ -12,6 +13,7 @@ import net.runelite.api.TileObject;
 import net.runelite.api.WorldView;
 import net.runelite.api.coords.WorldPoint;
 
+@Slf4j
 @Singleton
 public class RotationHelper
 {
@@ -32,7 +34,7 @@ public class RotationHelper
 
 	@Getter
 	private InventorySnapshot snapshot = new InventorySnapshot(
-		0, 0, 0, 28, false, false, false, false, false, false, -1, true, false, 0, 0);
+		0, 0, 0, 28, false, false, false, false, false, false, -1, true, false, 0, 0, false);
 
 	@Getter
 	private RcMode resolvedMode = RcMode.BLOOD;
@@ -43,6 +45,8 @@ public class RotationHelper
 	private RotationStep lastStep = RotationStep.IDLE;
 	/** True after the player clicks the Blood Altar during GO_ALTAR — hide Stand Here while walking. */
 	private boolean bloodAltarClickCommitted;
+	/** True once the Second Load's mining/veneration has started this Trip - there is no Third Load. */
+	private boolean secondLoadReached;
 
 	@Inject
 	RotationHelper(
@@ -70,6 +74,7 @@ public class RotationHelper
 		currentAction = HelperAction.idle();
 		lastStep = RotationStep.IDLE;
 		bloodAltarClickCommitted = false;
+		secondLoadReached = false;
 		sessionStats.clearBaselines();
 		pathRouter.reset();
 		shortestPathBridge.clear();
@@ -175,10 +180,15 @@ public class RotationHelper
 		WorldPoint start = player == null ? null : player.getWorldLocation();
 		boolean atMine = start != null && sceneTracker.isAtMine(start);
 
-		RotationStep step = RotationLogic.infer(snapshot, atAltar, nearAltar, atMine, lastStep);
+		RotationStep step = RotationLogic.infer(snapshot, atAltar, nearAltar, atMine, lastStep, secondLoadReached);
 		if (RotationLogic.isTripCompleteTransition(lastStep, step))
 		{
 			sessionStats.noteTripComplete();
+			secondLoadReached = false;
+		}
+		if (step == RotationStep.MINE_SECOND || step == RotationStep.GO_DARK_SECOND)
+		{
+			secondLoadReached = true;
 		}
 		sessionStats.noteRuneInventory(
 			snapshot.getBloodRunes(), snapshot.getSoulRunes(), snapshot.isHasFragments());
@@ -189,12 +199,27 @@ public class RotationHelper
 		}
 		lastStep = step;
 
+		boolean bloodAltarInScene = sceneTracker.isBloodAltarInScene();
 		BloodAltarReach.State altarReach = BloodAltarReach.evaluate(
 			step,
 			resolvedMode,
 			start,
-			sceneTracker.isBloodAltarInScene(),
+			bloodAltarInScene,
 			bloodAltarClickCommitted);
+		if (step == RotationStep.GO_ALTAR && resolvedMode == RcMode.BLOOD
+			&& altarReach != BloodAltarReach.State.READY)
+		{
+			WorldView diagnosticView = client.getTopLevelWorldView();
+			log.debug(
+				"GO_ALTAR not ready: reach={} altarInScene={} bloodAltarSpawned={} reachTo={} tile={}"
+					+ " sceneBase=({},{}) sceneSize=({},{})",
+				altarReach, bloodAltarInScene, sceneTracker.getBloodAltar() != null,
+				start == null ? -1 : BloodAltarReach.reachTo(start), start,
+				diagnosticView == null ? -1 : diagnosticView.getBaseX(),
+				diagnosticView == null ? -1 : diagnosticView.getBaseY(),
+				diagnosticView == null ? -1 : diagnosticView.getSizeX(),
+				diagnosticView == null ? -1 : diagnosticView.getSizeY());
+		}
 
 		TileObject destination = destinationObject(step, altarReach);
 		WorldPoint end = pathEnd(destination, step, start, altarReach);

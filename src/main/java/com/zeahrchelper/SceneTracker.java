@@ -214,9 +214,16 @@ public class SceneTracker
 		return loc.distanceTo(fallback) <= tiles;
 	}
 
-	/** True when the Blood Altar's tile lies inside the base 104x104 scene (not the extended band). */
+	/**
+	 * True once the Blood Altar GameObject has actually spawned, or its tile lies inside the base
+	 * 104x104 scene (not the extended band) as a fallback for before its spawn event has fired.
+	 */
 	public boolean isBloodAltarInScene()
 	{
+		if (bloodAltar != null)
+		{
+			return true;
+		}
 		WorldView wv = client.getTopLevelWorldView();
 		if (wv == null)
 		{

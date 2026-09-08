@@ -78,12 +78,50 @@ public class RotationLogicTest
 	}
 
 	@Test
+	public void finishingFirstLoadWithNothingLeftGoesToMineSecond()
+	{
+		// No Second Load yet this Trip - carrying on to mine it is correct, even fully chiselled.
+		assertEquals(RotationStep.MINE_SECOND,
+			RotationLogic.infer(carrying(0, 0, 60), false, false, true, RotationStep.CHISEL_AND_RETURN, false));
+	}
+
+	@Test
+	public void finishingSecondLoadWithNothingLeftGoesToAltar()
+	{
+		// There is no Third Load - nothing left to mine means go craft, not "Mine again".
+		assertEquals(RotationStep.GO_ALTAR,
+			RotationLogic.infer(carrying(0, 0, 60), false, false, true, RotationStep.CHISEL_AND_RETURN, true));
+	}
+
+	@Test
 	public void fullStackMidChiselKeepsChiselling()
 	{
 		// 4 frags/block: known Full after ~25 of 27, with dark still left.
 		assertEquals(RotationStep.CHISEL_AND_RETURN,
 			RotationLogic.infer(carrying(0, 2, RotationLogic.FULL_FRAGMENTS), false, false, false,
 				RotationStep.CHISEL_AND_RETURN));
+	}
+
+	@Test
+	public void checkConfirmedFullOnFirstLoadStillKeepsChiselling()
+	{
+		// A Check confirming Full must not skip mining the Second Load - a Trip is always
+		// both Loads, even if the First Load alone already crossed the threshold.
+		assertEquals(RotationStep.CHISEL_AND_RETURN,
+			RotationLogic.infer(carryingChecked(0, 2, RotationLogic.FULL_FRAGMENTS), false, false, false,
+				RotationStep.CHISEL_AND_RETURN, false));
+	}
+
+	@Test
+	public void checkConfirmedFullBreaksTheChiselVetoMidRun()
+	{
+		// Same inputs as fullStackMidChiselKeepsChiselling, but the Second Load has already
+		// been reached and a fresh Check just confirmed Full - unlike a count merely inferred
+		// from this run's own chiselling, that is a deliberate signal that should unlock the
+		// altar immediately rather than finishing this Load's remaining Dark Blocks.
+		assertEquals(RotationStep.GO_ALTAR,
+			RotationLogic.infer(carryingChecked(0, 2, RotationLogic.FULL_FRAGMENTS), false, false, false,
+				RotationStep.CHISEL_AND_RETURN, true));
 	}
 
 	@Test
@@ -118,19 +156,26 @@ public class RotationLogicTest
 	/** Fragments are one stackable slot; blocks take one slot each. */
 	private static InventorySnapshot carrying(int dense, int dark, int fragments)
 	{
-		return snapshot(dense, dark, fragments, true);
+		return snapshot(dense, dark, fragments, true, false);
 	}
 
 	private static InventorySnapshot carryingUnknown(int dense, int dark, int fragments)
 	{
-		return snapshot(dense, dark, fragments, false);
+		return snapshot(dense, dark, fragments, false, false);
 	}
 
-	private static InventorySnapshot snapshot(int dense, int dark, int fragments, boolean fragmentsKnown)
+	/** A fresh Check just confirmed this exact count. */
+	private static InventorySnapshot carryingChecked(int dense, int dark, int fragments)
+	{
+		return snapshot(dense, dark, fragments, true, true);
+	}
+
+	private static InventorySnapshot snapshot(
+		int dense, int dark, int fragments, boolean fragmentsKnown, boolean checkConfirmed)
 	{
 		int used = dense + dark + (fragments > 0 ? 1 : 0);
 		return new InventorySnapshot(
 			dense, dark, fragments, SLOTS - used, true, true, false, false, true, false, -1, fragmentsKnown,
-			fragments > 0, 0, 0);
+			fragments > 0, 0, 0, checkConfirmed);
 	}
 }

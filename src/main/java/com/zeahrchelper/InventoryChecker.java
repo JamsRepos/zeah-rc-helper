@@ -33,6 +33,10 @@ public class InventoryChecker
 
 	private int trackedFragments;
 	private boolean fragmentsKnown;
+	/** True once a fragment count of 0 or an explicit Check has actually been observed this session. */
+	private boolean baselineConfirmed;
+	/** True once an explicit Check has confirmed the current count, cleared when frags run out. */
+	private boolean checkConfirmed;
 	private int lastDarkBlocks = -1;
 
 	@Inject
@@ -45,6 +49,8 @@ public class InventoryChecker
 	{
 		trackedFragments = 0;
 		fragmentsKnown = false;
+		baselineConfirmed = false;
+		checkConfirmed = false;
 		lastDarkBlocks = -1;
 	}
 
@@ -55,6 +61,8 @@ public class InventoryChecker
 		{
 			trackedFragments = 1;
 			fragmentsKnown = true;
+			baselineConfirmed = true;
+			checkConfirmed = true;
 			return;
 		}
 		Matcher many = COUNT_MANY.matcher(message);
@@ -64,6 +72,8 @@ public class InventoryChecker
 			{
 				trackedFragments = Math.min(MAX_FRAGMENTS, Integer.parseInt(many.group(1)));
 				fragmentsKnown = true;
+				baselineConfirmed = true;
+				checkConfirmed = true;
 			}
 			catch (NumberFormatException ignored)
 			{
@@ -187,7 +197,8 @@ public class InventoryChecker
 			fragments.known,
 			hasFragmentItem,
 			bloodRunes,
-			soulRunes);
+			soulRunes,
+			checkConfirmed);
 	}
 
 	private FragmentCount resolveFragmentCount(
@@ -200,6 +211,8 @@ public class InventoryChecker
 		{
 			trackedFragments = 0;
 			fragmentsKnown = false;
+			baselineConfirmed = true;
+			checkConfirmed = false;
 			lastDarkBlocks = dark;
 			return new FragmentCount(0, true);
 		}
@@ -209,14 +222,23 @@ public class InventoryChecker
 		{
 			trackedFragments = Math.min(MAX_FRAGMENTS, visible);
 			fragmentsKnown = true;
+			baselineConfirmed = true;
+			checkConfirmed = true;
 		}
-		else if (lastDarkBlocks >= 0 && dark < lastDarkBlocks)
+		// Without a confirmed baseline (e.g. a "?" stack already held at login/relog), a dark-block
+		// drop could just be catching up on fragments this session never saw gained - stay unknown
+		// rather than reporting a falsely-low count until Check or a visible qty confirms the real one.
+		else if (baselineConfirmed && lastDarkBlocks >= 0 && dark < lastDarkBlocks)
 		{
 			int gained = FRAGMENTS_PER_BLOCK * (lastDarkBlocks - dark);
 			trackedFragments = fragmentsKnown
 				? Math.min(MAX_FRAGMENTS, trackedFragments + gained)
 				: gained;
 			fragmentsKnown = true;
+			// This count is built on inference again, not a fresh confirmation - a stale
+			// checkConfirmed here would let a Check of a non-full stack, followed by enough
+			// chiselling to cross Full on its own, wrongly break the keep-chiselling veto.
+			checkConfirmed = false;
 		}
 		else if (!fragmentsKnown)
 		{
