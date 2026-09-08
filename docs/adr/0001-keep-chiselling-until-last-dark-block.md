@@ -1,0 +1,5 @@
+# Keep chiselling until the last Dark Block once a Chisel run has started
+
+Interrupting an in-progress Chisel run as soon as the Fragment stack hit Fragment stack full (while Dark Blocks remained) forced the player to break off chiselling mid-run and walk to the altar with leftover Dark Blocks, which felt wrong and was reported upstream (VetleNeumann/arceuus-rc-helper#29). We chose to make the "Chisel" instruction sticky once a Chisel run starts on the current Load: it now overrides Fragment stack full and keeps showing "Chisel" until that Load's Dark Blocks reach zero, unless the player is already near the altar. The alternative (only interrupt when literally none of the current inventory's Dark Blocks are chisellable) was rejected as harder to detect reliably.
+
+**Amendment**: a fresh explicit Check confirming Fragment stack full now breaks this veto immediately, even mid-run (GitHub issue #9 follow-up). Full inferred from the current run's own chiselling still doesn't interrupt - only an out-of-band Check does, since it's a deliberate signal rather than an artifact of the run in progress.
