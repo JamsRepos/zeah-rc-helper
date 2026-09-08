@@ -86,6 +86,16 @@ public class RotationLogicTest
 	}
 
 	@Test
+	public void miningPartWayThroughTheSecondLoadStillSaysSecond()
+	{
+		// Held Fragments prove this mining pass is the Second Load, same signal already used to
+		// pick GO_DARK_SECOND once the inventory fills - "Mine" must agree with "Venerate"
+		// instead of falling back to the First Load's label mid-pass.
+		assertEquals(RotationStep.MINE_SECOND,
+			RotationLogic.infer(carrying(5, 0, 104), false, false, true, RotationStep.MINE_SECOND, false));
+	}
+
+	@Test
 	public void finishingSecondLoadWithNothingLeftGoesToAltar()
 	{
 		// There is no Third Load - nothing left to mine means go craft, not "Mine again".
@@ -151,6 +161,33 @@ public class RotationLogicTest
 		assertEquals(RotationStep.GO_ALTAR,
 			RotationLogic.infer(carrying(0, 2, RotationLogic.FULL_FRAGMENTS), false, true, false,
 				RotationStep.CHISEL_AND_RETURN));
+	}
+
+	@Test
+	public void onlyMiningTheFullSecondLoadMarksItReached()
+	{
+		// Arriving at the mine and being told to start (MINE_SECOND) is not the same as having
+		// actually mined it - only a full Second Load (GO_DARK_SECOND) proves that (issue #9).
+		assertEquals(false, RotationLogic.marksSecondLoadReached(RotationStep.MINE_SECOND));
+		assertEquals(true, RotationLogic.marksSecondLoadReached(RotationStep.GO_DARK_SECOND));
+	}
+
+	@Test
+	public void arrivingAtMineForSecondLoadDoesNotJumpToAltarNextTick()
+	{
+		// Regression for issue #9: flipping secondLoadReached off the back of MINE_SECOND made
+		// the very next tick's identical empty-handed state (still no Dense/Dark, just the First
+		// Load's Fragments) read as the Second Load already being done too, before any mining
+		// happened.
+		InventorySnapshot arrivingAtMine = carrying(0, 0, 104);
+		RotationStep firstTick = RotationLogic.infer(
+			arrivingAtMine, false, false, true, RotationStep.CHISEL_AND_RETURN, false);
+		assertEquals(RotationStep.MINE_SECOND, firstTick);
+
+		boolean secondLoadReached = RotationLogic.marksSecondLoadReached(firstTick);
+		assertEquals(false, secondLoadReached);
+		assertEquals(RotationStep.MINE_SECOND,
+			RotationLogic.infer(arrivingAtMine, false, false, true, firstTick, secondLoadReached));
 	}
 
 	/** Fragments are one stackable slot; blocks take one slot each. */
