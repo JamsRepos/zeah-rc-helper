@@ -49,6 +49,12 @@ final class RotationLogic
 		// mining the Second Load entirely - a Trip is always both Loads.
 		boolean checkOverride = secondLoadReached && inv.isFragmentsCheckConfirmed() && fullFragmentStack;
 		boolean chisellingVeto = chiselling && !checkOverride;
+		// There is no Third Load: once the Second Load's Dense is gone, everything left in the
+		// bag (Dark, Fragments, any mix) is headed to the altar regardless of Fragment count -
+		// GO_ALTAR already carries Dark blocks to be chiselled en route/at CHISEL_AT_ALTAR
+		// (GitHub issue #12 - a fixed Fragment-count threshold never fires when reduced inventory
+		// space keeps the Load's chiselled total under it).
+		boolean secondLoadFinishedMining = secondLoadReached && !hasDense;
 
 		if (atAltar)
 		{
@@ -63,6 +69,10 @@ final class RotationLogic
 			return RotationStep.RETURN_TO_MINE;
 		}
 
+		if (hasDark && secondLoadFinishedMining)
+		{
+			return RotationStep.GO_ALTAR;
+		}
 		if (hasFrags && hasDark && (nearAltar || (!chisellingVeto && fullFragmentStack)))
 		{
 			return RotationStep.GO_ALTAR;

@@ -104,6 +104,27 @@ public class RotationLogicTest
 	}
 
 	@Test
+	public void secondLoadBelowFullStackStillGoesToAltarNotMine()
+	{
+		// Issue #12: a reduced Load (non-essence items eating slots) can chisel to well under the
+		// fixed Fragment threshold. With no Third Load to mine, that must not send the player back
+		// to the runestones - Chisel/Altar routing here cares about Loads left, not the count.
+		assertEquals(RotationStep.GO_ALTAR,
+			RotationLogic.infer(carrying(0, 20, 96), false, false, false,
+				RotationStep.CHISEL_AND_RETURN, true));
+	}
+
+	@Test
+	public void firstLoadBelowFullStackKeepsChisellingTowardTheMine()
+	{
+		// Same Fragment/Dark shape as the issue #12 case, but on the First Load: the Second Load
+		// still needs mining, so this must stay CHISEL_AND_RETURN (mine-ward), not flip to altar.
+		assertEquals(RotationStep.CHISEL_AND_RETURN,
+			RotationLogic.infer(carrying(0, 20, 96), false, false, false,
+				RotationStep.CHISEL_AND_RETURN, false));
+	}
+
+	@Test
 	public void fullStackMidChiselKeepsChiselling()
 	{
 		// 4 frags/block: known Full after ~25 of 27, with dark still left.
