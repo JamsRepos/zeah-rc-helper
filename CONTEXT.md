@@ -17,7 +17,7 @@ Converting a Load's Dense Blocks into Dark Blocks at the Dark Altar.
 _Avoid_: Convert, Charge
 
 **Chisel run**:
-Chiselling a Load's Dark Blocks into Fragments while walking back toward the mine.
+Chiselling a Load's Dark Blocks into Fragments while walking back toward the mine. Only the First Load has one: there is no Third Load, so the Second Load's leftover Dark Blocks are chiselled while walking to the altar instead - see ADR-0001.
 _Avoid_: Chiselling session
 
 **Fragment stack full**:
