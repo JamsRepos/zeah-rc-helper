@@ -5,6 +5,8 @@ import java.util.regex.Pattern;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import net.runelite.api.Client;
+import net.runelite.api.EnumComposition;
+import net.runelite.api.EnumID;
 import net.runelite.api.EquipmentInventorySlot;
 import net.runelite.api.Item;
 import net.runelite.api.ItemComposition;
@@ -13,6 +15,7 @@ import net.runelite.api.events.ChatMessage;
 import net.runelite.api.gameval.InterfaceID;
 import net.runelite.api.gameval.InventoryID;
 import net.runelite.api.gameval.ItemID;
+import net.runelite.api.gameval.VarbitID;
 import net.runelite.api.widgets.Widget;
 import net.runelite.client.util.Text;
 
@@ -28,6 +31,14 @@ public class InventoryChecker
 	private static final Pattern COUNT_ONE = Pattern.compile(
 		"this stack of fragments is roughly equivalent to one piece of essence",
 		Pattern.CASE_INSENSITIVE);
+	private static final int[] RUNE_POUCH_TYPE_VARBITS = {
+		VarbitID.RUNE_POUCH_TYPE_1, VarbitID.RUNE_POUCH_TYPE_2, VarbitID.RUNE_POUCH_TYPE_3,
+		VarbitID.RUNE_POUCH_TYPE_4, VarbitID.RUNE_POUCH_TYPE_5, VarbitID.RUNE_POUCH_TYPE_6,
+	};
+	private static final int[] RUNE_POUCH_QUANTITY_VARBITS = {
+		VarbitID.RUNE_POUCH_QUANTITY_1, VarbitID.RUNE_POUCH_QUANTITY_2, VarbitID.RUNE_POUCH_QUANTITY_3,
+		VarbitID.RUNE_POUCH_QUANTITY_4, VarbitID.RUNE_POUCH_QUANTITY_5, VarbitID.RUNE_POUCH_QUANTITY_6,
+	};
 
 	private final Client client;
 
@@ -97,6 +108,7 @@ public class InventoryChecker
 		int lanternId = -1;
 		int bloodRunes = 0;
 		int soulRunes = 0;
+		boolean hasRunePouch = false;
 
 		ItemContainer inventory = client.getItemContainer(InventoryID.INV);
 		if (inventory == null)
@@ -138,6 +150,10 @@ public class InventoryChecker
 				{
 					soulRunes += qty;
 				}
+				else if (isRunePouch(id))
+				{
+					hasRunePouch = true;
+				}
 				else if (isChisel(id))
 				{
 					chisel = true;
@@ -160,6 +176,16 @@ public class InventoryChecker
 					pickaxe = true;
 				}
 			}
+		}
+
+		// A held pouch deposits crafted runes straight into itself instead of the inventory, so
+		// bloodRunes/soulRunes must include the pouch's own contents or crafting sessions using one
+		// look like they never produced any runes.
+		if (hasRunePouch)
+		{
+			PouchRuneTotals pouchRunes = scanRunePouch();
+			bloodRunes += pouchRunes.blood;
+			soulRunes += pouchRunes.soul;
 		}
 
 		int widgetQty = fragmentQuantityFromWidget();
@@ -304,6 +330,77 @@ public class InventoryChecker
 	static boolean isChisel(int id)
 	{
 		return id == ItemID.CHISEL || id == ItemID.JEWELLERS_CHISEL;
+	}
+
+	static boolean isRunePouch(int id)
+	{
+		return id == ItemID.BH_RUNE_POUCH
+			|| id == ItemID.BH_RUNE_POUCH_TROUVER
+			|| id == ItemID.DIVINE_RUNE_POUCH
+			|| id == ItemID.DIVINE_RUNE_POUCH_TROUVER;
+	}
+
+	/**
+	 * Reads the rune pouch's live contents from its varbits (it has no ItemContainer of its own).
+	 * The same 6 slot varbits are shared by the regular and Divine pouch; whichever is held is the
+	 * one populating them, so no pouch-specific handling is needed here.
+	 */
+	private PouchRuneTotals scanRunePouch()
+	{
+		EnumComposition runeEnum = client.getEnum(EnumID.RUNEPOUCH_RUNE);
+		if (runeEnum == null)
+		{
+			return new PouchRuneTotals(0, 0);
+		}
+
+		int[] runeItemIds = new int[RUNE_POUCH_TYPE_VARBITS.length];
+		int[] quantities = new int[RUNE_POUCH_QUANTITY_VARBITS.length];
+		for (int i = 0; i < runeItemIds.length; i++)
+		{
+			int qty = client.getVarbitValue(RUNE_POUCH_QUANTITY_VARBITS[i]);
+			if (qty <= 0)
+			{
+				continue;
+			}
+			quantities[i] = qty;
+			runeItemIds[i] = runeEnum.getIntValue(client.getVarbitValue(RUNE_POUCH_TYPE_VARBITS[i]));
+		}
+		return sumPouchRunes(runeItemIds, quantities);
+	}
+
+	static PouchRuneTotals sumPouchRunes(int[] runeItemIds, int[] quantities)
+	{
+		int blood = 0;
+		int soul = 0;
+		for (int i = 0; i < runeItemIds.length; i++)
+		{
+			int qty = i < quantities.length ? quantities[i] : 0;
+			if (qty <= 0)
+			{
+				continue;
+			}
+			if (runeItemIds[i] == ItemID.BLOODRUNE)
+			{
+				blood += qty;
+			}
+			else if (runeItemIds[i] == ItemID.SOULRUNE)
+			{
+				soul += qty;
+			}
+		}
+		return new PouchRuneTotals(blood, soul);
+	}
+
+	static final class PouchRuneTotals
+	{
+		final int blood;
+		final int soul;
+
+		PouchRuneTotals(int blood, int soul)
+		{
+			this.blood = blood;
+			this.soul = soul;
+		}
 	}
 
 	static boolean isAbyssalLantern(int id)

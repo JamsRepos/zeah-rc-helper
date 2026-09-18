@@ -12,6 +12,8 @@ import net.runelite.client.config.ConfigManager;
  * <p>
  * Crafted runes are credited only when the fragment stack leaves the inventory and blood/soul
  * quantity rises. Drop/pickup of runes alone does not remove fragments, so it is ignored.
+ * Blood/soul quantity here already includes any held Rune Pouch/Divine Rune Pouch contents, so
+ * runes the game deposits straight into a pouch instead of the inventory are still credited.
  */
 @Singleton
 public class SessionStats
