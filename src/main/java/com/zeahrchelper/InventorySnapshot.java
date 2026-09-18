@@ -20,7 +20,9 @@ public class InventorySnapshot
 	boolean fragmentsKnown;
 	/** True when a dark essence fragment stack is in the inventory. */
 	boolean hasFragments;
+	/** Inventory quantity plus any held Rune Pouch/Divine Rune Pouch quantity, combined. */
 	int bloodRunes;
+	/** Inventory quantity plus any held Rune Pouch/Divine Rune Pouch quantity, combined. */
 	int soulRunes;
 	/** True once an explicit Check has confirmed the current fragment count this trip. */
 	boolean fragmentsCheckConfirmed;
